@@ -6,12 +6,12 @@ The aim of this code is to authenticate signed image lists
 to facilitate sharing of VM's across HTC sites for high 
 energy physics.
 
-The code may be come more usiversal.
+The code may be come more universal.
 
 Contributors.
 ~~~~~~~~~~~~~
 
-Below is a list fo contributors. If you help in thsi project please add your
+Below is a list of contributors. If you help in this project please add your
 name.
 
 Owen Synge : owen.synge@desy.de
@@ -26,7 +26,7 @@ To get the DN and CA of your signature.
 openssl smime -in your_signed.msg \
  -pk7out | openssl pkcs7 -print_certs
 
-To Verfy the message agaisnt the CA certificate.
+To Verify the message against the CA certificate.
 
 openssl smime -in your_signed.msg \
  -CAfile /etc/grid-security/certificates/dd4b34ea.0 \
