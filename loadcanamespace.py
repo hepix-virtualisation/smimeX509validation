@@ -249,6 +249,7 @@ class view_trust_anchor:
         output = {
             'signer_dn' : signer_dn,
             'issuer_dn' : issuer_dn,
+            'data' : data.read()
         }
         return output
 
@@ -259,5 +260,9 @@ if __name__ == "__main__":
     
     anchor = view_trust_anchor()
     anchor.update_ca_list(u'/etc/grid-security/certificates')
-    print anchor.validate_file('bill')
+    validatedimage = anchor.validate_file('bill')
+    print validatedimage['signer_dn']
+    print validatedimage['issuer_dn']
+    print validatedimage['data']
+
     #anchor.validate_file('broke')
