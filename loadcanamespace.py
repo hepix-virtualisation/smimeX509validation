@@ -2,6 +2,29 @@ import os.path
 import shlex
 import re
 from M2Crypto import SMIME, X509
+import time
+import datetime
+
+def parse_crl_date(date_string):
+    #print date_string
+    splitdata = date_string.split(' ')
+    date_list = []
+    for item in splitdata:
+        stripeditem = item.strip()
+        if len(stripeditem) > 0:
+            date_list.append(stripeditem)
+    #print date_list
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    month_no = months.index(str(date_list[0])) +1
+    timelist = date_list[2].split(':')
+    return datetime.datetime(int(date_list[3]),month_no,int(date_list[1]),
+        int(timelist[0]),int(timelist[1]),int(timelist[2]))
+    #validate = ouput.strftime("%b %d %H:%M:%S %Y GMT")
+    #if validate != date_string:
+    #    print validate,date_string
+    #print 
+
+
 
 class trust_anchor:    
     def __init__(self):
@@ -18,7 +41,9 @@ class ca_namespace_permited:
         self.issuer_dn = issuer_dn
         self.namespaces = []
         self.namespaces_compiled = []
-        
+        self.crl = set([])
+        self.crl_created = datetime.datetime.now()
+        self.crl_expires = self.crl_created
     def add_issue_regex(self,subject_re):
         if subject_re in self.namespaces:
             return
@@ -28,6 +53,7 @@ class ca_namespace_permited:
         self.ca_filename = filename
     def set_ca_x509(self,x509):
         self.x509 = x509
+    
         
 class ca_namespaces:
     def __init__(self):
@@ -84,30 +110,71 @@ class ca_namespaces:
         crltext = str(X509.load_crl(filename).as_text())
         lines = crltext.split('\n')
         if 'Certificate Revocation List (CRL):' != lines[0]:
-            return
+            return False
         section = 0
         
         regex_issuer = re.compile('        Issuer: ')
+        regex_crl_created = re.compile('        Last Update: ')
+        regex_crl_expires = re.compile('        Next Update: ')
+       
+        
         regex_serial = re.compile('    Serial Number: ')
+        #regex_revoke_date = re.compile('        Revocation Date:')
         
         regex_section_revoked = re.compile('Revoked Certificates:')
+        regex_section_revoked2 = re.compile('No Revoked Certificates.')
+        regex_section_signature = re.compile('    Signature Algorithm: ')
         
         Issuer = None
-        
+        crl_update_created = None
+        crl_update_expires = None
+        revokationlist = set([])
         for line in lines:
             if section == 0:
-                if regex_issuer.match(line):
-                    print line
-                if regex_section_revoked.match(line):
-                    print line
+                match_issuer = regex_issuer.match(line)
+                if match_issuer:
+                    Issuer = line[match_issuer.end():].strip()
+                    continue
+                match_crl_created = regex_crl_created.match(line)
+                if match_crl_created:
+                    crl_update_created = parse_crl_date(line[match_crl_created.end():].strip())
+                    continue
+                match_crl_expires = regex_crl_expires.match(line)
+                if match_crl_expires:
+                    crl_update_expires = parse_crl_date(line[match_crl_expires.end():].strip())
+                    continue
+                if regex_section_revoked.match(line) or regex_section_revoked2.match(line):
+                    section = 1
+                    continue
+                #print line
             if section == 1:
-                
-                pass
+                match_serial = regex_serial.match(line)
+                if match_serial:
+                    serial_num_string =  int(line[match_serial.end():].strip(),16)
+                    revokationlist.add(serial_num_string)
+                #match_revokedate = regex_revoke_date.match(line)
+                #if match_revokedate:
+                #    testerdate =  parse_crl_date(line[match_revokedate.end():].strip())
+                #    if testerdate == None:
+                #        print 'sdfsdf%s' % (line[match_revokedate.end():].strip())
+                #    print testerdate.strftime("%b %d %H:%M:%S %Y GMT")
+                if regex_section_signature.match(line):
+                    section = 2
+                    continue
+                #print line
             if section == 2:
-                pass
-            
-        
-                
+                continue
+        now = datetime.datetime.now()
+        if now <= crl_update_created or now >= crl_update_expires:
+            return False
+        if not Issuer in self.ca.keys():
+            print "Issuer %s does not exist" % Issuer
+            return False
+        self.ca[Issuer].crl = revokationlist
+        self.ca[Issuer].crl_created = crl_update_created
+        self.ca[Issuer].crl_expires = crl_update_expires
+        #print Issuer
+        #print crl_update_created
         
     def with_dn_get_ca(self,dn):
         outputlist = []
