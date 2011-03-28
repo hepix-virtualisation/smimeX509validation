@@ -6,24 +6,19 @@ import time
 import datetime
 
 def parse_crl_date(date_string):
-    #print date_string
+    #
     splitdata = date_string.split(' ')
     date_list = []
     for item in splitdata:
         stripeditem = item.strip()
         if len(stripeditem) > 0:
             date_list.append(stripeditem)
-    #print date_list
     months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
     month_no = months.index(str(date_list[0])) +1
     timelist = date_list[2].split(':')
     return datetime.datetime(int(date_list[3]),month_no,int(date_list[1]),
         int(timelist[0]),int(timelist[1]),int(timelist[2]))
-    #validate = ouput.strftime("%b %d %H:%M:%S %Y GMT")
-    #if validate != date_string:
-    #    print validate,date_string
-    #print 
-
+    
 
 
 class trust_anchor:    
@@ -194,7 +189,7 @@ class ca_namespaces:
             
 class view_trust_anchor:
     def __init__(self):
-        pass
+        self.ca_name_spaces = ca_namespaces()
     def update_ca_list(self,anchor_of_trust,directory):
         ca_name_spaces = ca_namespaces()
         for filename in os.listdir(directory):
@@ -213,9 +208,9 @@ class view_trust_anchor:
                 ca_name_spaces.load_ca_cert(fullpath)
             if extention == u'.r0':
                 ca_name_spaces.load_ca_crl(fullpath)
-        #print ca_name_spaces.ca.keys()
-        print ca_name_spaces.with_dn_get_ca('/C=DE/O=GermanGrid/OU=DESY/CN=Owen Synge')
-                
+        self.ca_name_spaces = ca_name_spaces
+    def validatefile(self,filename):
+        pass
         
 
 class controler_trust_anchor:
