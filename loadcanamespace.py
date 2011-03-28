@@ -48,7 +48,17 @@ class ca_namespace_permited:
         self.ca_filename = filename
     def set_ca_x509(self,x509):
         self.x509 = x509
-    
+    def check_crl(self,serial_number):
+        now = datetime.datetime.now()
+        if now >= self.crl_expires:
+            return False    
+        if now <= self.crl_created:
+            return False
+        if int(serial_number) in self.crl:
+            return False
+        return True
+            
+        
         
 class ca_namespaces:
     def __init__(self):
@@ -190,7 +200,7 @@ class ca_namespaces:
 class view_trust_anchor:
     def __init__(self):
         self.ca_name_spaces = ca_namespaces()
-    def update_ca_list(self,anchor_of_trust,directory):
+    def update_ca_list(self,directory):
         ca_name_spaces = ca_namespaces()
         for filename in os.listdir(directory):
             fullpath = os.path.join(directory,filename)
@@ -209,21 +219,45 @@ class view_trust_anchor:
             if extention == u'.r0':
                 ca_name_spaces.load_ca_crl(fullpath)
         self.ca_name_spaces = ca_name_spaces
-    def validatefile(self,filename):
-        pass
+    def validate_file(self,filename):
+        sk = X509.X509_Stack()
+        p7, data = SMIME.smime_load_pkcs7(filename)
+        supplied_stack =  p7.get0_signers(sk)
+        issuer_dn = None
+        signer_dn = None
+        signer_serial_number = None
+        while True:
+            one = supplied_stack.pop()
+            if one == None:
+                break
+            issuer_dn = str(one.get_issuer())
+            signer_dn = str(one.get_subject())
+            signer_serial_number = one.get_serial_number()
+        correct_issuer_dn = self.ca_name_spaces.with_dn_get_ca(signer_dn)
+        if not self.ca_name_spaces.ca[correct_issuer_dn].check_crl(signer_serial_number):
+            return False            
+        s = SMIME.SMIME()
+        sk = X509.X509_Stack()
         
+        sk.push(self.ca_name_spaces.ca[correct_issuer_dn].x509)
+        s.set_x509_stack(sk)
+        st = X509.X509_Store()
+        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
+        st.load_info(str(self.ca_name_spaces.ca[correct_issuer_dn].ca_filename))
+        s.set_x509_store(st)
+        v = s.verify(p7,data)
+        output = {
+            'signer_dn' : signer_dn,
+            'issuer_dn' : issuer_dn,
+        }
+        return output
 
-class controler_trust_anchor:
-    def __init__(self):
-        self.model = trust_anchor()
-        self.view = view_trust_anchor()
-    def update(self,directory):
-        self.view.update_ca_list(self.model,directory)
-        
-        
+
 
 
 if __name__ == "__main__":
-    trust = controler_trust_anchor()
-    trust.update(u'/etc/grid-security/certificates')
     
+    anchor = view_trust_anchor()
+    anchor.update_ca_list(u'/etc/grid-security/certificates')
+    print anchor.validate_file('bill')
+    #anchor.validate_file('broke')
