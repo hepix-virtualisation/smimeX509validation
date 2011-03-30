@@ -1,0 +1,6 @@
+Only the certificate that signed the message is checked 
+and its CRL's are checked. This should check the full 
+chain as CA's such as CERN's are not top level 
+certificates and at this moment for example the CERN CA 
+is not checked that are based upon a certificate that 
+is signed by a CA above it.
