@@ -21,7 +21,7 @@ def parse_crl_date(date_string):
     
 
 
-class trust_anchor:    
+class TrustAnchor:    
     def __init__(self):
         self.cas = []
     def contains_ca_by_dn(self,da_dn):
@@ -31,7 +31,7 @@ class trust_anchor:
     def add_ca(self,da_dn):
         pass
 
-class ca_namespace_permited:
+class CANamespacePermited:
     def __init__(self,issuer_dn):
         self.issuer_dn = issuer_dn
         self.namespaces = []
@@ -60,14 +60,14 @@ class ca_namespace_permited:
             
         
         
-class ca_namespaces:
+class CANamespaces:
     def __init__(self):
         self.ca = {}
     def add_issuer_regex(self,issuer,regex):
         if issuer in self.ca.keys():
             self.ca[issuer].add_issue_regex(regex)
         else:
-            new_namespace_ca = ca_namespace_permited(issuer)
+            new_namespace_ca = CANamespacePermited(issuer)
             new_namespace_ca.add_issue_regex(regex)
             self.ca[issuer] = new_namespace_ca
                 
@@ -197,11 +197,11 @@ class ca_namespaces:
         
         
             
-class view_trust_anchor:
+class ViewTrustAnchor:
     def __init__(self):
-        self.ca_name_spaces = ca_namespaces()
+        self.ca_name_spaces = CANamespaces()
     def update_ca_list(self,directory):
-        ca_name_spaces = ca_namespaces()
+        ca_name_spaces = CANamespaces()
         for filename in os.listdir(directory):
             fullpath = os.path.join(directory,filename)
             if not os.path.isfile(fullpath):
@@ -220,6 +220,9 @@ class view_trust_anchor:
                 ca_name_spaces.load_ca_crl(fullpath)
         self.ca_name_spaces = ca_name_spaces
     def validate_file(self,filename):
+        if not os.path.isfile(filename):
+            # raise the IOError so we don't dump in the M2Crypto c library
+            raise IOError('can not open ' + filename)
         sk = X509.X509_Stack()
         p7, data = SMIME.smime_load_pkcs7(filename)
         supplied_stack =  p7.get0_signers(sk)
@@ -258,7 +261,7 @@ class view_trust_anchor:
 
 if __name__ == "__main__":
     
-    anchor = view_trust_anchor()
+    anchor = ViewTrustAnchor()
     anchor.update_ca_list(u'/etc/grid-security/certificates')
     validatedimage = anchor.validate_file('bill')
     print validatedimage['signer_dn']

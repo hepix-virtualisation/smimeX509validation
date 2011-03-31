@@ -10,7 +10,7 @@ def main():
         help='Path of certificates dir',
         default='/etc/grid-security/certificates/')
     options, arguments = p.parse_args()
-    anchor =  loadcanamespace.view_trust_anchor()
+    anchor =  loadcanamespace.ViewTrustAnchor()
     anchor.update_ca_list(options.certs_dir)
     for item in options.message:
         anchor.validate_file(item)
