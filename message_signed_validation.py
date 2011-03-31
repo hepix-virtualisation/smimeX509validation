@@ -1,8 +1,6 @@
 #!/bin/env python
 import optparse
 from smimeX509validation import ViewTrustAnchor
-from smimeX509validation import *
-#from smimeX509validation.loadcanamespace import ViewTrustAnchor
 
 def main():
     p = optparse.OptionParser()
