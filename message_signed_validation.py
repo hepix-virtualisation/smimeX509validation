@@ -1,6 +1,8 @@
 #!/bin/env python
 import optparse
-import loadcanamespace
+from smimeX509validation import ViewTrustAnchor
+from smimeX509validation import *
+#from smimeX509validation.loadcanamespace import ViewTrustAnchor
 
 def main():
     p = optparse.OptionParser()
@@ -10,7 +12,7 @@ def main():
         help='Path of certificates dir',
         default='/etc/grid-security/certificates/')
     options, arguments = p.parse_args()
-    anchor =  loadcanamespace.ViewTrustAnchor()
+    anchor =  ViewTrustAnchor()
     anchor.update_ca_list(options.certs_dir)
     for item in options.message:
         anchor.validate_file(item)

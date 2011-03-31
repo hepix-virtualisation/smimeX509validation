@@ -257,15 +257,3 @@ class ViewTrustAnchor:
         return output
 
 
-
-
-if __name__ == "__main__":
-    
-    anchor = ViewTrustAnchor()
-    anchor.update_ca_list(u'/etc/grid-security/certificates')
-    validatedimage = anchor.validate_file('bill')
-    print validatedimage['signer_dn']
-    print validatedimage['issuer_dn']
-    print validatedimage['data']
-
-    #anchor.validate_file('broke')
