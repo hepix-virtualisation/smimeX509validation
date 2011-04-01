@@ -28,8 +28,5 @@ setup(name='smimeX509validation',
         'Intended Audience :: Developers',
         'Operating System :: POSIX',
         'Programming Language :: Python',
-        'Topic :: Communications :: Email',
-        'Topic :: Office/Business',
-        'Topic :: Software Development :: Bug Tracking',
         ],
 )
