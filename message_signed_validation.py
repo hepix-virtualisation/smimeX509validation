@@ -2,6 +2,8 @@
 import optparse
 import sys
 from smimeX509validation import ViewTrustAnchor
+import logging, logging.config
+
 
 def main():
     p = optparse.OptionParser()
@@ -20,4 +22,5 @@ def main():
             anchor.validate_file(item)
        
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.WARNING)
     main()

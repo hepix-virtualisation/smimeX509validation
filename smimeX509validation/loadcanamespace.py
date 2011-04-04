@@ -4,7 +4,21 @@ import re
 from M2Crypto import SMIME, X509
 import time
 import datetime
+import logging, logging.config
 
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+h = NullHandler()
+logging.getLogger("SmimeX509Validation").addHandler(h)
+
+class SmimeX509ValidationException(Exception):
+       def __init__(self, value):
+           self.parameter = value
+       def __str__(self):
+           return repr(self.parameter)
+           
 def parse_crl_date(date_string):
     #
     splitdata = date_string.split(' ')
@@ -18,18 +32,6 @@ def parse_crl_date(date_string):
     timelist = date_list[2].split(':')
     return datetime.datetime(int(date_list[3]),month_no,int(date_list[1]),
         int(timelist[0]),int(timelist[1]),int(timelist[2]))
-    
-
-
-class TrustAnchor:    
-    def __init__(self):
-        self.cas = []
-    def contains_ca_by_dn(self,da_dn):
-        ### Returns CA on success and None on failure ###
-    
-        pass
-    def add_ca(self,da_dn):
-        pass
 
 class CANamespacePermited:
     def __init__(self,issuer_dn):
@@ -63,6 +65,7 @@ class CANamespacePermited:
 class CANamespaces:
     def __init__(self):
         self.ca = {}
+        self.logger = logging.getLogger("SmimeX509Validation.CANamespaces")
     def add_issuer_regex(self,issuer,regex):
         if issuer in self.ca.keys():
             self.ca[issuer].add_issue_regex(regex)
@@ -103,6 +106,7 @@ class CANamespaces:
         # First check thsi is a CA cert
         if 0 == x509c.check_ca():
             # Its not a CA
+            self.logger.warning("Not a valid CA:%s" % (filename))
             return
         # Only process CA's with a namespace
         subject = str(x509c.get_subject())
@@ -173,7 +177,7 @@ class CANamespaces:
         if now <= crl_update_created or now >= crl_update_expires:
             return False
         if not Issuer in self.ca.keys():
-            print "Issuer %s does not exist" % Issuer
+            self.logger.warning("CRL for Issuer does not exist:%s:%s" % (filename,Issuer))
             return False
         self.ca[Issuer].crl = revokationlist
         self.ca[Issuer].crl_created = crl_update_created
@@ -229,16 +233,30 @@ class ViewTrustAnchor:
         issuer_dn = None
         signer_dn = None
         signer_serial_number = None
+        
+        supplied_list = []
         while True:
             one = supplied_stack.pop()
+            
             if one == None:
                 break
-            issuer_dn = str(one.get_issuer())
-            signer_dn = str(one.get_subject())
-            signer_serial_number = one.get_serial_number()
-        correct_issuer_dn = self.ca_name_spaces.with_dn_get_ca(signer_dn)
-        if not self.ca_name_spaces.ca[correct_issuer_dn].check_crl(signer_serial_number):
-            return False            
+            else:
+                supplied_list.append(one)
+        if len(supplied_list) > 1:
+            # We do not support proxy chains here.
+            raise SmimeX509ValidationException("Library does not yet support long chains of trust")
+        for item in supplied_list:
+            issuer_dn = str(item.get_issuer())
+            signer_dn = str(item.get_subject())
+            
+            # Only validate files signed with a certificate issued a correct CA
+            correct_issuer_dn = self.ca_name_spaces.with_dn_get_ca(signer_dn)
+            if issuer_dn != correct_issuer_dn:
+                raise SmimeX509ValidationException("Signers DN issued by incorrect CA.")
+            # Now we need to check the serial number
+            signer_serial_number = item.get_serial_number()
+            if not self.ca_name_spaces.ca[correct_issuer_dn].check_crl(signer_serial_number):
+                raise SmimeX509ValidationException("Signers cert is revoked.")
         s = SMIME.SMIME()
         sk = X509.X509_Stack()
         
