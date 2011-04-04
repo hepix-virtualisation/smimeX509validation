@@ -1,5 +1,6 @@
-#!/bin/env python
+#!/usr/bin/env python
 import optparse
+import sys
 from smimeX509validation import ViewTrustAnchor
 
 def main():
@@ -12,8 +13,11 @@ def main():
     options, arguments = p.parse_args()
     anchor =  ViewTrustAnchor()
     anchor.update_ca_list(options.certs_dir)
-    for item in options.message:
-        anchor.validate_file(item)
+    if options.message == None:
+        sys.exit(1)
+    else:
+        for item in options.message:
+            anchor.validate_file(item)
        
 if __name__ == "__main__":
     main()
