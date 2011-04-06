@@ -201,7 +201,7 @@ class CANamespaces:
         
         
             
-class ViewTrustAnchor:
+class TrustAnchor:
     def __init__(self):
         self.ca_name_spaces = CANamespaces()
     def update_ca_list(self,directory):
