@@ -1,7 +1,7 @@
 import os.path
 import shlex
 import re
-from M2Crypto import SMIME, X509
+from M2Crypto import SMIME, X509, BIO
 import time
 import datetime
 import logging, logging.config
@@ -223,12 +223,10 @@ class ViewTrustAnchor:
             if extention == u'.r0':
                 ca_name_spaces.load_ca_crl(fullpath)
         self.ca_name_spaces = ca_name_spaces
-    def validate_file(self,filename):
-        if not os.path.isfile(filename):
-            # raise the IOError so we don't dump in the M2Crypto c library
-            raise IOError('can not open ' + filename)
+    def validate_text(self,text_to_verify):
+        buf = BIO.MemoryBuffer(text_to_verify)
         sk = X509.X509_Stack()
-        p7, data = SMIME.smime_load_pkcs7(filename)
+        p7, data = SMIME.smime_load_pkcs7_bio(buf)
         supplied_stack =  p7.get0_signers(sk)
         issuer_dn = None
         signer_dn = None
@@ -273,5 +271,12 @@ class ViewTrustAnchor:
             'data' : data.read()
         }
         return output
+
+    def validate_file(self,filename):
+        if not os.path.isfile(filename):
+            # raise the IOError so we don't dump in the M2Crypto c library
+            raise IOError('can not open ' + filename)
+        return self.validate_text(open(filename).read())
+        
 
 

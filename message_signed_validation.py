@@ -19,7 +19,7 @@ def main():
         sys.exit(1)
     else:
         for item in options.message:
-            anchor.validate_file(item)
+            print anchor.validate_file(item)
        
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
