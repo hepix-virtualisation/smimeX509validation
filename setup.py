@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
 from smimeX509validation.__version__ import version
-try:
+from sys import version_info
+if version_info < (2, 6):
+	from distutils.core import setup
+else:
+    try:
         from setuptools import setup, find_packages
-except ImportError:
+    except ImportError:
         from ez_setup import use_setuptools
         use_setuptools()
         from setuptools import setup, find_packages
