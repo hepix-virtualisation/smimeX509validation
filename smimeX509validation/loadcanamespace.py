@@ -102,7 +102,12 @@ class CANamespaces:
             if line[0] == 'TO' and line[1] == 'Issuer' and line[3] == 'PERMIT' and line[4] == 'Subject':
                 self.add_issuer_regex(line[2],line[5])
     def load_ca_cert(self,filename):
-        x509c = X509.load_cert(filename)
+        try:
+            x509c = X509.load_cert(filename)
+        except X509.X509Error, (instance):
+            self.logger.error("Failed to load CA cert '%s'" % (filename))
+            return
+            
         # First check thsi is a CA cert
         if 0 == x509c.check_ca():
             # Its not a CA
