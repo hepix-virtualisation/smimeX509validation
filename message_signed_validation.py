@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import optparse
 import sys
-from smimeX509validation import ViewTrustAnchor
+from smimeX509validation import TrustAnchor
 import logging, logging.config
 
 
@@ -13,7 +13,7 @@ def main():
         help='Path of certificates dir',
         default='/etc/grid-security/certificates/')
     options, arguments = p.parse_args()
-    anchor =  ViewTrustAnchor()
+    anchor =  TrustAnchor()
     anchor.update_ca_list(options.certs_dir)
     if options.message == None:
         sys.exit(1)

@@ -13,7 +13,7 @@ class NullHandler(logging.Handler):
 h = NullHandler()
 logging.getLogger("SmimeX509Validation").addHandler(h)
 
-class SmimeX509ValidationException(Exception):
+class SmimeX509ValidationError(Exception):
        def __init__(self, value):
            self.parameter = value
        def __str__(self):
@@ -206,7 +206,7 @@ class CANamespaces:
         
         
             
-class ViewTrustAnchor:
+class TrustAnchor:
     def __init__(self):
         self.ca_name_spaces = CANamespaces()
     def update_ca_list(self,directory):
@@ -247,7 +247,7 @@ class ViewTrustAnchor:
                 supplied_list.append(one)
         if len(supplied_list) > 1:
             # We do not support proxy chains here.
-            raise SmimeX509ValidationException("Library does not yet support long chains of trust")
+            raise SmimeX509ValidationError("Library does not yet support long chains of trust")
         for item in supplied_list:
             issuer_dn = str(item.get_issuer())
             signer_dn = str(item.get_subject())
@@ -255,11 +255,11 @@ class ViewTrustAnchor:
             # Only validate files signed with a certificate issued a correct CA
             correct_issuer_dn = self.ca_name_spaces.with_dn_get_ca(signer_dn)
             if issuer_dn != correct_issuer_dn:
-                raise SmimeX509ValidationException("Signers DN issued by incorrect CA.")
+                raise SmimeX509ValidationError("Signers DN issued by incorrect CA.")
             # Now we need to check the serial number
             signer_serial_number = item.get_serial_number()
             if not self.ca_name_spaces.ca[correct_issuer_dn].check_crl(signer_serial_number):
-                raise SmimeX509ValidationException("Signers cert is revoked.")
+                raise SmimeX509ValidationError("Signers cert is revoked.")
         s = SMIME.SMIME()
         sk = X509.X509_Stack()
         
@@ -269,7 +269,11 @@ class ViewTrustAnchor:
         #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
         st.load_info(str(self.ca_name_spaces.ca[correct_issuer_dn].ca_filename))
         s.set_x509_store(st)
-        v = s.verify(p7,data)
+        try:
+            v = s.verify(p7,data)
+        except SMIME.PKCS7_Error as e:
+            raise SmimeX509ValidationError(e)
+            
         output = {
             'signer_dn' : signer_dn,
             'issuer_dn' : issuer_dn,
