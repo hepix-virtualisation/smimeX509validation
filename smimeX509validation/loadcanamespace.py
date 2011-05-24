@@ -208,6 +208,7 @@ class CANamespaces:
             
 class TrustAnchor:
     def __init__(self):
+        self.logger = logging.getLogger("SmimeX509Validation.TrustAnchor")
         self.ca_name_spaces = CANamespaces()
     def update_ca_list(self,directory):
         ca_name_spaces = CANamespaces()
@@ -232,7 +233,13 @@ class TrustAnchor:
         buf = BIO.MemoryBuffer(text_to_verify)
         sk = X509.X509_Stack()
         p7, data = SMIME.smime_load_pkcs7_bio(buf)
-        supplied_stack =  p7.get0_signers(sk)
+        try:
+            supplied_stack =  p7.get0_signers(sk)
+        except AttributeError, e:
+            if str(e) == "PKCS7 instance has no attribute 'get0_signers'":
+                self.logger.error('m2crypto version 0.18 is the minimum supported, please upgrade.')
+            raise e
+            
         issuer_dn = None
         signer_dn = None
         signer_serial_number = None
