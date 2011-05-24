@@ -271,7 +271,10 @@ class TrustAnchor:
         s.set_x509_store(st)
         try:
             v = s.verify(p7,data)
-        except SMIME.PKCS7_Error as e:
+	#when python 2.6 is the min version of supported 
+	#change back to 
+	#except SMIME.PKCS7_Error as e:
+        except SMIME.PKCS7_Error , e:
             raise SmimeX509ValidationError(e)
             
         output = {
