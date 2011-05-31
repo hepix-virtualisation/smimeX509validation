@@ -35,12 +35,13 @@ def parse_crl_date(date_string):
 
 class CANamespacePermited:
     def __init__(self,issuer_dn):
+        self.logger = logging.getLogger("SmimeX509Validation.CANamespacePermited")
         self.issuer_dn = issuer_dn
         self.namespaces = []
         self.namespaces_compiled = []
-        self.crl = set([])
-        self.crl_created = datetime.datetime.now()
-        self.crl_expires = self.crl_created
+        self.crl = None
+        self.crl_created = None
+        self.crl_expires = None
     def add_issue_regex(self,subject_re):
         if subject_re in self.namespaces:
             return
@@ -52,9 +53,20 @@ class CANamespacePermited:
         self.x509 = x509
     def check_crl(self,serial_number):
         now = datetime.datetime.now()
-        if now >= self.crl_expires:
-            return False    
-        if now <= self.crl_created:
+        if self.crl_expires == None:
+            self.logger.error("Failed to parse CRL expiry date for issuer %s." % self.issuer_dn)
+        else:
+            if now >= self.crl_expires:
+                self.logger.error("CRL has expired %s." % self.issuer_dn)
+                return False
+        if self.crl_created == None:
+            self.logger.error("Failed to parse CRL creation date for issuer %s." % self.issuer_dn)
+        else:
+            if now <= self.crl_created:
+                self.logger.error("CRL is created in the future %s." % self.issuer_dn)
+                return False
+        if self.crl == None:
+            self.logger.error("CRL list unpassed %s." % self.issuer_dn)
             return False
         if int(serial_number) in self.crl:
             return False
@@ -178,8 +190,18 @@ class CANamespaces:
                 #print line
             if section == 2:
                 continue
+        if None == crl_update_created:
+            self.logger.warning("CRL creation date not found:%s:%s" % (filename,Issuer))
+            return False
+        if None == crl_update_expires:
+            self.logger.warning("CRL expiry date not found:%s:%s" % (filename,Issuer))
+            return False
         now = datetime.datetime.now()
-        if now <= crl_update_created or now >= crl_update_expires:
+        if now <= crl_update_created:
+            self.logger.warning("CRL created in the future :%s:%s" % (filename,Issuer))
+            return False
+        if now >= crl_update_expires:
+            self.logger.warning("at %s the CRL expired:%s:%s" % (crl_update_expires,filename,Issuer))
             return False
         if not Issuer in self.ca.keys():
             self.logger.warning("CRL for Issuer does not exist:%s:%s" % (filename,Issuer))
@@ -187,8 +209,7 @@ class CANamespaces:
         self.ca[Issuer].crl = revokationlist
         self.ca[Issuer].crl_created = crl_update_created
         self.ca[Issuer].crl_expires = crl_update_expires
-        #print Issuer
-        #print crl_update_created
+        
         
     def with_dn_get_ca(self,dn):
         outputlist = []
