@@ -1,0 +1,12 @@
+smimeX509validation-0.0.5
+
+Clearer handling of error messages about CRL messages.
+    The following new error messages have been added:
+    Failed to Parse CRL expiry date
+    Failed to parse CRL creation date
+    CRL is created in the future
+    CRL list unpassed
+Better handling of too old versions of m2crypto.
+    New error message
+    'm2crypto version 0.18 is the minimum supported, please upgrade.
+Removed python 2.6 only feature, so teh code now works on python 2.5 again.

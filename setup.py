@@ -33,4 +33,6 @@ setup(name='smimeX509validation',
         'Operating System :: POSIX',
         'Programming Language :: Python',
         ],
-)
+    data_files=[('/usr/share/doc/smimeX509validation',['README','ChangeLog','TODO']),
+        ('/usr/share/doc/smimeX509validation/examples',['outline_code.py','message_signed_validation.py'])]
+    )

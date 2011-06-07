@@ -1,0 +1,5 @@
+include README
+include TODO
+include ChangeLog
+include outline_code.py
+include message_signed_validation.py
