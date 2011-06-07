@@ -9,4 +9,7 @@ Clearer handling of error messages about CRL messages.
 Better handling of too old versions of m2crypto.
     New error message
     'm2crypto version 0.18 is the minimum supported, please upgrade.
-Removed python 2.6 only feature, so teh code now works on python 2.5 again.
+Removed python 2.6 only feature, so the code now works on python 2.5 again.
+Added 'README','ChangeLog','TODO', 'outline_code.py','message_signed_validation.py' to RPM.
+Added Manifest for packaging
+
