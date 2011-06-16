@@ -129,9 +129,12 @@ class CANamespaces:
         subject = str(x509c.get_subject())
         if not subject in self.ca.keys():
             return
+        issuer = str(x509c.get_issuer())
+        serial_number = str(x509c.get_serial_number())
         self.ca[subject].set_ca_filename(filename)
         self.ca[subject].set_ca_x509(x509c)
-        
+        self.ca[subject].issuer = issuer
+        self.ca[subject].serial = serial_number
     def load_ca_crl(self,filename):
         crltext = str(X509.load_crl(filename).as_text())
         lines = crltext.split('\n')
@@ -224,6 +227,49 @@ class CANamespaces:
             return None
         return outputlist[0]
     
+    def GetCaHeirarchListWithCaDn(self,dn):
+        known = set(self.ca.keys())
+        outputlist = []
+        inputlist = [dn]
+        while len(inputlist) > 0:
+            item = inputlist.pop()
+            outputlist.append(item)
+            issuer = self.ca[item].issuer
+            if issuer == item:
+                break
+            inputlist.append(self.ca[item].issuer)
+        return outputlist
+        
+    
+    def GetListCaWithSignerDn(self,dn):
+        outputlist = []
+        for cakey in self.ca.keys():
+            for regex in self.ca[cakey].namespaces_compiled:
+                if None != regex.match(dn):
+                    outputlist.append(cakey)
+        return outputlist
+    
+    def GetKeyByDn(self,Dn):
+        # Takes a list of DN's and checks 
+        # they are orded correctly
+        if not Dn in self.ca:
+            return None
+        return self.ca[Dn].x509
+
+    def checkCrlHeirarchy(self,subject,issuer,serialno):
+        possibleIssuers = self.GetListCaWithSignerDn(subject)
+        if not issuer in possibleIssuers:
+            raise SmimeX509ValidationError("Signers DN issued by incorrect CA.")
+        CaHeirarchList = self.GetCaHeirarchListWithCaDn(issuer)
+        current_Sn = serialno
+        print CaHeirarchList
+        for item in CaHeirarchList:
+            if not self.ca[issuer].check_crl(current_Sn):
+                return False
+            current_Sn = self.ca[issuer].serial
+        return True
+        
+        
         
         
             
@@ -273,29 +319,44 @@ class TrustAnchor:
                 break
             else:
                 supplied_list.append(one)
-        if len(supplied_list) > 1:
-            # We do not support proxy chains here.
-            raise SmimeX509ValidationError("Library does not yet support long chains of trust")
+       
+        certdictionary  = []
         for item in supplied_list:
+            itemdictionary = {}
             issuer_dn = str(item.get_issuer())
             signer_dn = str(item.get_subject())
+            cert_sn = str(item.get_serial_number())
+            itemdictionary['subject'] = signer_dn
+            itemdictionary['issuer'] = issuer_dn
+            itemdictionary['serial_number'] = cert_sn
             
-            # Only validate files signed with a certificate issued a correct CA
-            correct_issuer_dn = self.ca_name_spaces.with_dn_get_ca(signer_dn)
-            if issuer_dn != correct_issuer_dn:
-                raise SmimeX509ValidationError("Signers DN issued by incorrect CA.")
-            # Now we need to check the serial number
-            signer_serial_number = item.get_serial_number()
-            if not self.ca_name_spaces.ca[correct_issuer_dn].check_crl(signer_serial_number):
-                raise SmimeX509ValidationError("Signers cert is revoked.")
+            certdictionary.append(itemdictionary)
+        # Only validate files signed with a certificate issued a correct CA
+        if not len(certdictionary) == 1:
+            if len(certdictionary) > 1:
+                raise SmimeX509ValidationError("To many keys in signature file.")
+            if len(certdictionary) == 0:
+                raise SmimeX509ValidationError("No keys found signature file.")
+        
+        baseCert = certdictionary[0]
+        if not self.ca_name_spaces.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number']):
+            raise SmimeX509ValidationError("Cert %s is expired")
+        CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(baseCert['issuer'])
         s = SMIME.SMIME()
         sk = X509.X509_Stack()
-        
-        sk.push(self.ca_name_spaces.ca[correct_issuer_dn].x509)
+        for item in CaHeirarchy:
+            foundKey = self.ca_name_spaces.GetKeyByDn(item)
+            if foundKey == None:
+                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+            sk.push(foundKey)
         s.set_x509_stack(sk)
         st = X509.X509_Store()
-        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
-        st.load_info(str(self.ca_name_spaces.ca[correct_issuer_dn].ca_filename))
+        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename        
+        for item in CaHeirarchy:
+            foundKey = self.ca_name_spaces.GetKeyByDn(item)
+            if foundKey == None:
+                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+            st.add_cert(foundKey)
         s.set_x509_store(st)
         try:
             v = s.verify(p7,data)
