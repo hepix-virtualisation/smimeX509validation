@@ -7,6 +7,6 @@ done
 
 for i in 'cernvm.list' 'andrea.list' 'eduk.list' 'ian.list'
 do
-./message_signed_validation.py -m  ${i}
+./message_signed_validation.py -m  ${i} >/dev/null
 echo worked=$?
 done
