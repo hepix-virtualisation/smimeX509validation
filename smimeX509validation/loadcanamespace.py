@@ -262,7 +262,6 @@ class CANamespaces:
             raise SmimeX509ValidationError("Signers DN issued by incorrect CA.")
         CaHeirarchList = self.GetCaHeirarchListWithCaDn(issuer)
         current_Sn = serialno
-        print CaHeirarchList
         for item in CaHeirarchList:
             if not self.ca[issuer].check_crl(current_Sn):
                 return False
