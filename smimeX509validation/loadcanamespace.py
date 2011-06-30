@@ -259,11 +259,12 @@ class CANamespaces:
     def checkCrlHeirarchy(self,subject,issuer,serialno):
         possibleIssuers = self.GetListCaWithSignerDn(subject)
         if not issuer in possibleIssuers:
-            raise SmimeX509ValidationError("Signers DN issued by incorrect CA.")
+            raise SmimeX509ValidationError("Signers DN issued by unaproved CA.")
         CaHeirarchList = self.GetCaHeirarchListWithCaDn(issuer)
         current_Sn = serialno
         for item in CaHeirarchList:
             if not self.ca[issuer].check_crl(current_Sn):
+                self.logger.info("Cert '%s' with serial number '%s' is revoked by '%s'" % (subject,serialno,issuer))
                 return False
             current_Sn = self.ca[issuer].serial
         return True
