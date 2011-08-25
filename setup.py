@@ -12,8 +12,6 @@ else:
         use_setuptools()
         from setuptools import setup, find_packages
 
-# could be added below need owens aproval
-# license = "'GPL3' or 'Apache 2'",
 setup(name='smimeX509validation',
     version = version,
     description = 'Utility for Verifying smime Message Signatures',
@@ -32,7 +30,8 @@ setup(name='smimeX509validation',
         'Intended Audience :: Developers',
         'Operating System :: POSIX',
         'Programming Language :: Python',
+        'License :: OSI Approved :: Apache 2.0',
         ],
-    data_files=[('/usr/share/doc/smimeX509validation',['README','ChangeLog','TODO']),
+    data_files=[('/usr/share/doc/smimeX509validation',['README','ChangeLog','TODO','LICENSE']),
         ('/usr/share/doc/smimeX509validation/examples',['outline_code.py','message_signed_validation.py'])]
     )
