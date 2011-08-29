@@ -15,7 +15,7 @@ else:
 setup(name='smimeX509validation',
     version = version,
     description = 'Utility for Verifying smime Message Signatures',
-    long_description="""The aim of this code is to authenticate SMIME signed messages, loading CRL's and CA details 
+    long_description="""The aim of this code is to authenticate SMIME signed messages, loading CRL's and CA details
 following the Trust Anchor Distribution trust anchor system. The library does not retrive
 CRL's it is recomended that other tools such as fetch-crl to update your CRL's.""",
     author = 'Owen Synge',
