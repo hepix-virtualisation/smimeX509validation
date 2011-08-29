@@ -207,10 +207,10 @@ class CANamespaces:
             return False
         now = datetime.datetime.now()
         if now <= crl_update_created:
-            self.logger.warning("CRL created in the future :%s:%s" % (filename,Issuer))
+            self.logger.info("CRL created in the future :%s:%s" % (filename,Issuer))
             return False
         if now >= crl_update_expires:
-            self.logger.warning("at %s the CRL expired:%s:%s" % (crl_update_expires,filename,Issuer))
+            self.logger.info("at %s the CRL expired:%s:%s" % (crl_update_expires,filename,Issuer))
             return False
         if not Issuer in self.ca.keys():
             self.logger.warning("CRL for Issuer does not exist:%s:%s" % (filename,Issuer))
