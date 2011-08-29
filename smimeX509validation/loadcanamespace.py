@@ -193,6 +193,12 @@ class CANamespaces:
                 #print line
             if section == 2:
                 continue
+        if None == Issuer:
+            self.logger.warning("CRL Issuer not found:%s" % (filename))
+            return False
+        self.ca[Issuer].crl = revokationlist
+        self.ca[Issuer].crl_created = crl_update_created
+        self.ca[Issuer].crl_expires = crl_update_expires
         if None == crl_update_created:
             self.logger.warning("CRL creation date not found:%s:%s" % (filename,Issuer))
             return False
@@ -209,9 +215,7 @@ class CANamespaces:
         if not Issuer in self.ca.keys():
             self.logger.warning("CRL for Issuer does not exist:%s:%s" % (filename,Issuer))
             return False
-        self.ca[Issuer].crl = revokationlist
-        self.ca[Issuer].crl_created = crl_update_created
-        self.ca[Issuer].crl_expires = crl_update_expires
+        return True
         
         
     def with_dn_get_ca(self,dn):
