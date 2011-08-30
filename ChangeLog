@@ -1,3 +1,19 @@
+smimeX509validation-0.0.8
+
+* Added and Apache License, Version 2.0
+* Improved error handling for failed to parse CRL's.
+* Reduced from WARNING to INFO CRL expiry for loading and parsing CRL.
+
+
+smimeX509validation-0.0.7
+
+* Updated README
+
+smimeX509validation-0.0.5
+
+* Improved Packaging
+* Looking up CA chain of trust rather than just issuer.
+
 smimeX509validation-0.0.5
 
 Clearer handling of error messages about CRL messages.
@@ -12,4 +28,3 @@ Better handling of too old versions of m2crypto.
 Removed python 2.6 only feature, so the code now works on python 2.5 again.
 Added 'README','ChangeLog','TODO', 'outline_code.py','message_signed_validation.py' to RPM.
 Added Manifest for packaging
-
