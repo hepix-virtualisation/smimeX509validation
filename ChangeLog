@@ -2,7 +2,8 @@ smimeX509validation-0.0.8
 
 * Added and Apache License, Version 2.0
 * Improved error handling for failed to parse CRL's.
-* Reduced from WARNING to INFO CRL expiry for loading and parsing CRL.
+* when CRL expiry is found on loading and parsing all CRL the message has been 
+    reduced from WARNING to INFO.
 
 
 smimeX509validation-0.0.7
