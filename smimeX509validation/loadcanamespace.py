@@ -33,6 +33,21 @@ def parse_crl_date(date_string):
     return datetime.datetime(int(date_list[3]),month_no,int(date_list[1]),
         int(timelist[0]),int(timelist[1]),int(timelist[2]))
 
+def parse_ca_signing_policy_namespaces(namespaces):
+    if len(namespaces) < 2:
+        return []
+    deleimeter = None
+    if namespaces[0] in ['"',"'"]:
+        deleimeter = namespaces[0]
+    if deleimeter == None:
+        return [namespaces]
+    output = []
+    for split in namespaces.split(deleimeter):
+        cleanedsplit = split.strip()
+        if len(cleanedsplit) > 0:
+            output.append(cleanedsplit)
+    return output
+
 class CANamespacePermited:
     def __init__(self,issuer_dn):
         self.logger = logging.getLogger("SmimeX509Validation.CANamespacePermited")
@@ -113,6 +128,35 @@ class CANamespaces:
         for line in lexed_lines:
             if line[0] == 'TO' and line[1] == 'Issuer' and line[3] == 'PERMIT' and line[4] == 'Subject':
                 self.add_issuer_regex(line[2],line[5])
+
+    def load_ca_signing_policy(self,filename):
+        #print filename
+        fp = open(filename)
+        currentline = ''
+        access_id_CA = None
+        cond_subjects = None
+        for line in fp.readlines():
+            lexer = shlex.shlex(line, posix=True)
+            toxenised = []
+            for token in lexer:
+                stripedtoken = token.strip()
+                toxenised.append(stripedtoken)
+            if len(toxenised) == 3:
+                if toxenised[0] == 'access_id_CA':
+                    access_id_CA = str(toxenised[2])
+                if toxenised[0] == 'cond_subjects':
+                    cond_subjects = parse_ca_signing_policy_namespaces(str(toxenised[2]))
+        #print '%s][%s=B=%s' % (access_id_CA,cond_subjects,filename)
+        if access_id_CA != None:
+            for matcher in cond_subjects:
+                regex = matcher.replace('*','.*')
+                self.add_issuer_regex(access_id_CA,regex)
+
+
+        #print access_id_CA,cond_subjects
+
+
+
     def load_ca_cert(self,filename):
         try:
             x509c = X509.load_cert(filename)
@@ -290,6 +334,8 @@ class TrustAnchor:
             start,extention = os.path.splitext(filename)
             if extention == u'.namespaces':
                 ca_name_spaces.load_ca_namespace(fullpath)
+            if extention == u'.signing_policy':
+                ca_name_spaces.load_ca_signing_policy(fullpath)
         for filename in os.listdir(directory):
             fullpath = os.path.join(directory,filename)
             if not os.path.isfile(fullpath):
