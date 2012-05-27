@@ -12,27 +12,31 @@ else:
         use_setuptools()
         from setuptools import setup, find_packages
 
-# could be added below need owens aproval
-# license = "'GPL3' or 'Apache 2'",
 setup(name='smimeX509validation',
     version = version,
     description = 'Utility for Verifying smime Message Signatures',
+    long_description="""The aim of this code is to authenticate SMIME signed messages, loading CRL's and CA details
+following the Trust Anchor Distribution trust anchor system. The library does not retrive
+CRL's it is recomended that other tools such as fetch-crl to update your CRL's.""",
     author = 'Owen Synge',
     author_email = 'owen.synge@desy.de',
+    license='Apache License (2.0)',
     install_requires=[
        "M2Crypto>=0.16",
         ],
     url = 'https://github.com/hepix-virtualisation/smimeX509validation',
     packages = ['smimeX509validation'],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
-        'Intended Audience :: System Administrators',
-        'Intended Audience :: Science/Research'
         'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research'
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX',
         'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
         ],
-    data_files=[('/usr/share/doc/smimeX509validation',['README','ChangeLog','TODO']),
-        ('/usr/share/doc/smimeX509validation/examples',['outline_code.py','message_signed_validation.py'])]
+    data_files=[('/usr/share/doc/smimeX509validation-%s' % (version),['README','ChangeLog','TODO','LICENSE']),
+        ('/usr/share/doc/smimeX509validation-%s/examples' % (version),['outline_code.py','message_signed_validation.py'])]
     )

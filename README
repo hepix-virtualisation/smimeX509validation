@@ -1,12 +1,5 @@
-Dear all,
-
-This code is very alpha, and intended to be developed fast.
-
-The aim of this code is to authenticate signed image lists 
-to facilitate sharing of VM's across HTC sites for high 
-energy physics.
-
-The code may be come more universal.
+The aim of this code is to authenticate SMIME signed messages, loading CRL's and CA details
+following the Trust Anchor Distribution trust anchor system.
 
 Contributors.
 ~~~~~~~~~~~~~
@@ -20,6 +13,12 @@ Comments and feedback:
 
 David Groep : davidg@nikhef.nl
 
+Functions
+~~~~~~~~~
+
+This library is intended to work with trust anchors and certificate revocation lists (CRL)
+and signing policies. The library does not retrive CRL's it is recomended that other tools
+such as fetch-crl (https://dist.eugridpma.info/distribution/util/) to update your CRL's.
 
 How to verify.
 ~~~~~~~~~~~~~~
@@ -33,7 +32,7 @@ To Verify the message against the CA certificate.
 
 openssl smime -in your_signed.msg \
  -CAfile /etc/grid-security/certificates/dd4b34ea.0 \
- -verify 1> /dev/null 
+ -verify 1> /dev/null
 
 
 Whats developed.
@@ -42,7 +41,7 @@ Whats developed.
 loadcanamespace.py is a simeple library developed to automate and
 simplify the authentication of signed messages.
 
-Thier is a small demo application for checking one or more signed 
+Thier is a small demo application for checking one or more signed
 messages.
 
 # python message_signed_validation.py -h

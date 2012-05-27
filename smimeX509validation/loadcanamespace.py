@@ -18,7 +18,7 @@ class SmimeX509ValidationError(Exception):
            self.parameter = value
        def __str__(self):
            return repr(self.parameter)
-           
+
 def parse_crl_date(date_string):
     #
     splitdata = date_string.split(' ')
@@ -33,6 +33,21 @@ def parse_crl_date(date_string):
     return datetime.datetime(int(date_list[3]),month_no,int(date_list[1]),
         int(timelist[0]),int(timelist[1]),int(timelist[2]))
 
+def parse_ca_signing_policy_namespaces(namespaces):
+    if len(namespaces) < 2:
+        return []
+    deleimeter = None
+    if namespaces[0] in ['"',"'"]:
+        deleimeter = namespaces[0]
+    if deleimeter == None:
+        return [namespaces]
+    output = []
+    for split in namespaces.split(deleimeter):
+        cleanedsplit = split.strip()
+        if len(cleanedsplit) > 0:
+            output.append(cleanedsplit)
+    return output
+
 class CANamespacePermited:
     def __init__(self,issuer_dn):
         self.logger = logging.getLogger("SmimeX509Validation.CANamespacePermited")
@@ -46,7 +61,7 @@ class CANamespacePermited:
         if subject_re in self.namespaces:
             return
         self.namespaces_compiled.append(re.compile(subject_re))
-        self.namespaces.append(subject_re)     
+        self.namespaces.append(subject_re)
     def set_ca_filename(self,filename):
         self.ca_filename = filename
     def set_ca_x509(self,x509):
@@ -71,9 +86,9 @@ class CANamespacePermited:
         if int(serial_number) in self.crl:
             return False
         return True
-            
-        
-        
+
+
+
 class CANamespaces:
     def __init__(self):
         self.ca = {}
@@ -85,7 +100,7 @@ class CANamespaces:
             new_namespace_ca = CANamespacePermited(issuer)
             new_namespace_ca.add_issue_regex(regex)
             self.ca[issuer] = new_namespace_ca
-                
+
     def load_ca_namespace(self,filename):
         resolvedlines = []
         fp = open(filename)
@@ -109,17 +124,46 @@ class CANamespaces:
                 toxenised.append(stripedtoken)
             if len(toxenised) > 0:
                 lexed_lines.append(toxenised)
-          
+
         for line in lexed_lines:
             if line[0] == 'TO' and line[1] == 'Issuer' and line[3] == 'PERMIT' and line[4] == 'Subject':
                 self.add_issuer_regex(line[2],line[5])
+
+    def load_ca_signing_policy(self,filename):
+        #print filename
+        fp = open(filename)
+        currentline = ''
+        access_id_CA = None
+        cond_subjects = None
+        for line in fp.readlines():
+            lexer = shlex.shlex(line, posix=True)
+            toxenised = []
+            for token in lexer:
+                stripedtoken = token.strip()
+                toxenised.append(stripedtoken)
+            if len(toxenised) == 3:
+                if toxenised[0] == 'access_id_CA':
+                    access_id_CA = str(toxenised[2])
+                if toxenised[0] == 'cond_subjects':
+                    cond_subjects = parse_ca_signing_policy_namespaces(str(toxenised[2]))
+        #print '%s][%s=B=%s' % (access_id_CA,cond_subjects,filename)
+        if access_id_CA != None:
+            for matcher in cond_subjects:
+                regex = matcher.replace('*','.*')
+                self.add_issuer_regex(access_id_CA,regex)
+
+
+        #print access_id_CA,cond_subjects
+
+
+
     def load_ca_cert(self,filename):
         try:
             x509c = X509.load_cert(filename)
         except X509.X509Error, (instance):
             self.logger.error("Failed to load CA cert '%s'" % (filename))
             return
-            
+
         # First check thsi is a CA cert
         if 0 == x509c.check_ca():
             # Its not a CA
@@ -141,19 +185,19 @@ class CANamespaces:
         if 'Certificate Revocation List (CRL):' != lines[0]:
             return False
         section = 0
-        
+
         regex_issuer = re.compile('        Issuer: ')
         regex_crl_created = re.compile('        Last Update: ')
         regex_crl_expires = re.compile('        Next Update: ')
-       
-        
+
+
         regex_serial = re.compile('    Serial Number: ')
         #regex_revoke_date = re.compile('        Revocation Date:')
-        
+
         regex_section_revoked = re.compile('Revoked Certificates:')
         regex_section_revoked2 = re.compile('No Revoked Certificates.')
         regex_section_signature = re.compile('    Signature Algorithm: ')
-        
+
         Issuer = None
         crl_update_created = None
         crl_update_expires = None
@@ -193,6 +237,15 @@ class CANamespaces:
                 #print line
             if section == 2:
                 continue
+        if None == Issuer:
+            self.logger.warning("CRL Issuer not found:%s" % (filename))
+            return False
+        if not Issuer in self.ca.keys():
+            self.logger.warning("Namespace for Issuer '%s' does not exist:%s" % (Issuer,filename))
+            return False
+        self.ca[Issuer].crl = revokationlist
+        self.ca[Issuer].crl_created = crl_update_created
+        self.ca[Issuer].crl_expires = crl_update_expires
         if None == crl_update_created:
             self.logger.warning("CRL creation date not found:%s:%s" % (filename,Issuer))
             return False
@@ -201,19 +254,14 @@ class CANamespaces:
             return False
         now = datetime.datetime.now()
         if now <= crl_update_created:
-            self.logger.warning("CRL created in the future :%s:%s" % (filename,Issuer))
+            self.logger.info("CRL created in the future :%s:%s" % (filename,Issuer))
             return False
         if now >= crl_update_expires:
-            self.logger.warning("at %s the CRL expired:%s:%s" % (crl_update_expires,filename,Issuer))
+            self.logger.info("at %s the CRL expired:%s:%s" % (crl_update_expires,filename,Issuer))
             return False
-        if not Issuer in self.ca.keys():
-            self.logger.warning("CRL for Issuer does not exist:%s:%s" % (filename,Issuer))
-            return False
-        self.ca[Issuer].crl = revokationlist
-        self.ca[Issuer].crl_created = crl_update_created
-        self.ca[Issuer].crl_expires = crl_update_expires
-        
-        
+        return True
+
+
     def with_dn_get_ca(self,dn):
         outputlist = []
         for cakey in self.ca.keys():
@@ -226,7 +274,7 @@ class CANamespaces:
         if len(outputlist) == 0:
             return None
         return outputlist[0]
-    
+
     def GetCaHeirarchListWithCaDn(self,dn):
         known = set(self.ca.keys())
         outputlist = []
@@ -239,8 +287,8 @@ class CANamespaces:
                 break
             inputlist.append(self.ca[item].issuer)
         return outputlist
-        
-    
+
+
     def GetListCaWithSignerDn(self,dn):
         outputlist = []
         for cakey in self.ca.keys():
@@ -248,9 +296,9 @@ class CANamespaces:
                 if None != regex.match(dn):
                     outputlist.append(cakey)
         return outputlist
-    
+
     def GetKeyByDn(self,Dn):
-        # Takes a list of DN's and checks 
+        # Takes a list of DN's and checks
         # they are orded correctly
         if not Dn in self.ca:
             return None
@@ -259,19 +307,20 @@ class CANamespaces:
     def checkCrlHeirarchy(self,subject,issuer,serialno):
         possibleIssuers = self.GetListCaWithSignerDn(subject)
         if not issuer in possibleIssuers:
-            raise SmimeX509ValidationError("Signers DN issued by incorrect CA.")
+            raise SmimeX509ValidationError("Signers DN issued by unaproved CA.")
         CaHeirarchList = self.GetCaHeirarchListWithCaDn(issuer)
         current_Sn = serialno
         for item in CaHeirarchList:
             if not self.ca[issuer].check_crl(current_Sn):
+                self.logger.info("Cert '%s' with serial number '%s' is revoked by '%s'" % (subject,serialno,issuer))
                 return False
             current_Sn = self.ca[issuer].serial
         return True
-        
-        
-        
-        
-            
+
+
+
+
+
 class TrustAnchor:
     def __init__(self):
         self.logger = logging.getLogger("SmimeX509Validation.TrustAnchor")
@@ -285,7 +334,9 @@ class TrustAnchor:
             start,extention = os.path.splitext(filename)
             if extention == u'.namespaces':
                 ca_name_spaces.load_ca_namespace(fullpath)
-        for filename in os.listdir(directory):      
+            if extention == u'.signing_policy':
+                ca_name_spaces.load_ca_signing_policy(fullpath)
+        for filename in os.listdir(directory):
             fullpath = os.path.join(directory,filename)
             if not os.path.isfile(fullpath):
                 continue
@@ -305,20 +356,20 @@ class TrustAnchor:
             if str(e) == "PKCS7 instance has no attribute 'get0_signers'":
                 self.logger.error('m2crypto version 0.18 is the minimum supported, please upgrade.')
             raise e
-            
+
         issuer_dn = None
         signer_dn = None
         signer_serial_number = None
-        
+
         supplied_list = []
         while True:
             one = supplied_stack.pop()
-            
+
             if one == None:
                 break
             else:
                 supplied_list.append(one)
-       
+
         certdictionary  = []
         for item in supplied_list:
             itemdictionary = {}
@@ -328,7 +379,7 @@ class TrustAnchor:
             itemdictionary['subject'] = signer_dn
             itemdictionary['issuer'] = issuer_dn
             itemdictionary['serial_number'] = cert_sn
-            
+
             certdictionary.append(itemdictionary)
         # Only validate files signed with a certificate issued a correct CA
         if not len(certdictionary) == 1:
@@ -336,7 +387,7 @@ class TrustAnchor:
                 raise SmimeX509ValidationError("To many keys in signature file.")
             if len(certdictionary) == 0:
                 raise SmimeX509ValidationError("No keys found signature file.")
-        
+
         baseCert = certdictionary[0]
         if not self.ca_name_spaces.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number']):
             raise SmimeX509ValidationError("Cert %s is expired")
@@ -350,7 +401,7 @@ class TrustAnchor:
             sk.push(foundKey)
         s.set_x509_stack(sk)
         st = X509.X509_Store()
-        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename        
+        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
@@ -359,12 +410,12 @@ class TrustAnchor:
         s.set_x509_store(st)
         try:
             v = s.verify(p7,data)
-	#when python 2.6 is the min version of supported 
-	#change back to 
+	#when python 2.6 is the min version of supported
+	#change back to
 	#except SMIME.PKCS7_Error as e:
         except SMIME.PKCS7_Error , e:
             raise SmimeX509ValidationError(e)
-            
+
         output = {
             'signer_dn' : signer_dn,
             'issuer_dn' : issuer_dn,
@@ -377,6 +428,6 @@ class TrustAnchor:
             # raise the IOError so we don't dump in the M2Crypto c library
             raise IOError('can not open ' + filename)
         return self.validate_text(open(filename).read())
-        
+
 
 
