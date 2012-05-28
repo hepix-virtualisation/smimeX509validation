@@ -25,7 +25,7 @@ def main():
             
             #print anchor.validate_file(item)
             smimeProcessor = smimeX509validation(anchor)
-            smimeProcessor.ReadFilePath(item)
+            smimeProcessor.ProcessFile(item)
             print smimeProcessor
             
 

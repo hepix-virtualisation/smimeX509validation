@@ -6,6 +6,7 @@ import time
 import datetime
 import logging, logging.config
 import truststore
+
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
@@ -21,13 +22,14 @@ class smimeX509ValidationError(Exception):
            return repr(self.parameter)
 
 class TrustStore(object):
-    def __init__(self, Time = None):
+    def __init__(self, Time = None,TrustStoreType = "directoy",Metadata= {'directory' : '/etc/grid-security/certificates/'}):
         if Time == None:
             Time = datetime.datetime.now()
         self.time = Time
-    def setType(self, Metadata,TrustStoreType = "directoy"):
+    def setType(self, TrustStoreType = "directoy"):
         pass
-            
+    def setMetadata  (self, Metadata):
+        pass
     def load_ca_namespace(self):
         pass
     def load_ca_signing_policy(self):
@@ -47,13 +49,18 @@ class smimeX509validation(object):
     def __init__(self,TrustStore):
         self.TrustStore = TrustStore
     
-    
-    def Process(inputString):
+    def ProcessFile(self,inputString):
+        if not os.path.isfile(inputString):
+            # raise the IOError so we don't dump in the M2Crypto c library
+            raise IOError('can not open ' + inputString)
+        return self.Process(open(inputString).read())
+
+    def Process(self,inputString):
         buf = BIO.MemoryBuffer(inputString)
         sk = X509.X509_Stack()
-        self.InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
+        InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
         try:
-            M2CryptoX509Stack =  p7.get0_signers(sk)
+            M2CryptoX509Stack =  InputP7.get0_signers(sk)
         except AttributeError, e:
             if str(e) == "PKCS7 instance has no attribute 'get0_signers'":
                 self.logger.error('m2crypto version 0.18 is the minimum supported, please upgrade.')
@@ -86,27 +93,28 @@ class smimeX509validation(object):
         # Only validate files signed with a certificate issued a correct CA
         if not len(certdictionary) == 1:
             if len(certdictionary) > 1:
-                raise SmimeX509ValidationError("To many keys in signature file.")
+                raise smimeX509ValidationError("To many keys in signature file.")
             if len(certdictionary) == 0:
-                raise SmimeX509ValidationError("No keys found signature file.")
+                raise smimeX509ValidationError("No keys found signature file.")
 
         baseCert = certdictionary[0]
         
         
-        
-        TrustStore.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
+        #TrustStore.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
        
         
         s = SMIME.SMIME()
         sk = X509.X509_Stack()
-        TrustStoreM2CryptoX509_Stack = TrustStore.GerM2CryptoX509_Stack(self, baseCert)
-        s.set_x509_stack()
+        TrustStoreM2CryptoX509_Stack = self.TrustStore.GerM2CryptoX509_Stack(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
+        if TrustStoreM2CryptoX509_Stack == None:
+            raise smimeX509ValidationError("No Trusted Stack found.")
+        s.set_x509_stack(TrustStoreM2CryptoX509_Stack)
         st = X509.X509_Store(TrustStoreM2CryptoX509_Stack)
         #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
-                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+                raise smimeX509ValidationError("No trusted Key for '%s'" % (item))
             st.add_cert(foundKey)
         s.set_x509_store(st)
         try:
@@ -115,7 +123,7 @@ class smimeX509validation(object):
 	#change back to
 	#except SMIME.PKCS7_Error as e:
         except SMIME.PKCS7_Error , e:
-            raise SmimeX509ValidationError(e)
+            raise smimeX509ValidationError(e)
 
         output = {
             'signer_dn' : signer_dn,
@@ -135,8 +143,8 @@ def LoadDirChainOfTrust(dirPath):
             DirTrustStore.load_ca_namespace(fullpath)
         if extention == u'.signing_policy':
             DirTrustStore.load_ca_signing_policy(fullpath)
-    for filename in os.listdir(directory):
-        fullpath = os.path.join(directory,filename)
+    for filename in os.listdir(dirPath):
+        fullpath = os.path.join(dirPath,filename)
         if not os.path.isfile(fullpath):
             continue
         start,extention = os.path.splitext(filename)
