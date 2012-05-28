@@ -50,22 +50,6 @@ class TrustStore(object):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.update()
         return None
-    def load_ca_signing_policy(self,filepath):
-        if hasattr(self, "_TrustStore"):
-            return self._TrustStore.load_ca_signing_policy(filepath)
-        return None
-    def load_ca_cert(self,filepath):
-        if hasattr(self, "_TrustStore"):
-            return self._TrustStore.load_ca_cert(filepath)
-        return None
-    def load_ca_crl(self,filepath):
-        if hasattr(self, "_TrustStore"):
-            return self._TrustStore.load_ca_crl(filepath)
-        return None
-    def load_ca_namespace(self,filepath):
-        if hasattr(self, "_TrustStore"):
-            return self._TrustStore.load_ca_namespace(filepath)
-        return None
     def CheckCirtificateRevocationList(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList)
@@ -167,9 +151,9 @@ class smimeX509validation(object):
             raise smimeX509ValidationError(e)
 
         output = {
-            'signer_dn' : signer_dn,
-            'issuer_dn' : issuer_dn,
-            'data' : Inputdata.read()
+            'SignerSubject' : signer_dn,
+            'IssuerSubject' : issuer_dn,
+            'Data' : Inputdata.read()
         }
         return output
 
