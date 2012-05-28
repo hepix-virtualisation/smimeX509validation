@@ -69,6 +69,10 @@ class TrustStore(object):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.GerM2CryptoX509_Stack(subject, issuer, serial_number)
         return None
+    def GerM2CryptoX509_Store(self, subject, issuer, serial_number):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.GerM2CryptoX509_Store(subject, issuer, serial_number)
+        return None
     def GetCertKeyBySubject(self, CertKeySubject):
        if hasattr(self, "_TrustStore"):
             return self._TrustStore.GetCertKeyBySubject(CertKeySubject)
@@ -134,16 +138,18 @@ class smimeX509validation(object):
        
         
         s = SMIME.SMIME()
-        sk = X509.X509_Stack()
         TrustStoreM2CryptoX509_Stack = self.TrustStore.GerM2CryptoX509_Stack(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
         if TrustStoreM2CryptoX509_Stack == None:
             raise smimeX509ValidationError("No Trusted Stack found.")
-        print TrustStoreM2CryptoX509_Stack
+            
+        TrustStoreM2CryptoX509_Store = self.TrustStore.GerM2CryptoX509_Store(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
+        if TrustStoreM2CryptoX509_Store == None:
+            raise smimeX509ValidationError("No Trusted Store found.")
+        print TrustStoreM2CryptoX509_Store
         s.set_x509_stack(TrustStoreM2CryptoX509_Stack)
-        st = X509.X509_Store(TrustStoreM2CryptoX509_Stack)
-        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
         
-        s.set_x509_store(st)
+        
+        s.set_x509_store(TrustStoreM2CryptoX509_Store)
         try:
             v = s.verify(InputP7,Inputdata)
 	#when python 2.6 is the min version of supported
@@ -155,7 +161,7 @@ class smimeX509validation(object):
         output = {
             'signer_dn' : signer_dn,
             'issuer_dn' : issuer_dn,
-            'data' : data.read()
+            'data' : Inputdata.read()
         }
         return output
 

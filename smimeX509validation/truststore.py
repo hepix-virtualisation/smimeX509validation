@@ -473,6 +473,17 @@ class TrustStore(object):
                 raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
             sk.push(foundKey)
         return sk
+    def GerM2CryptoX509_Store(self, subject, issuer, serial_number):
+        CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
+        st = X509.X509_Store()
+        for item in CaHeirarchy:
+            foundKey = self.ca_name_spaces.GetKeyByDn(item)
+            if foundKey == None:
+                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+            st.add_cert(foundKey)
+        return st
+        
+        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
     def GetCertKeyBySubject(self, CertKeySubject):
         key = None
         return key
