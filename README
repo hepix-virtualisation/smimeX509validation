@@ -53,3 +53,9 @@ Options:
                         adds a message to be tested.
   -c CERTS_DIR, --certs-dir=CERTS_DIR
                         Path of certificates dir
+
+Dependancies
+~~~~~~~~~~~~
+
+apt-get install python-m2crypto
+apt-get install python-setuptools
