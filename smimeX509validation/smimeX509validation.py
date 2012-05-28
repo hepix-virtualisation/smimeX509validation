@@ -34,6 +34,7 @@ class TrustStore(object):
         self.time = Time
         self.setMetadata  (Metadata)
         self.setType()
+        self.update()
         
         
     def setType(self, TrustStoreType = "directoy"):
@@ -45,7 +46,7 @@ class TrustStore(object):
         self.Metadata = dict(Metadata)
         if hasattr(self, "_TrustStore"):
             self._TrustStore.setMetadata(Metadata)
-    def update(self,filepath):
+    def update(self):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.update()
         return None
@@ -64,6 +65,10 @@ class TrustStore(object):
     def load_ca_namespace(self,filepath):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.load_ca_namespace(filepath)
+        return None
+    def CheckCirtificateRevocationList(self, InputCertMetaDataList):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList)
         return None
     def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
         if hasattr(self, "_TrustStore"):
@@ -113,7 +118,7 @@ class smimeX509validation(object):
             else:
                 supplied_list.append(one)
 
-        certdictionary  = []
+        InputCertMetaDataList  = []
         for item in supplied_list:
             itemdictionary = {}
             issuer_dn = str(item.get_issuer())
@@ -123,15 +128,18 @@ class smimeX509validation(object):
             itemdictionary['issuer'] = issuer_dn
             itemdictionary['serial_number'] = cert_sn
 
-            certdictionary.append(itemdictionary)
+            InputCertMetaDataList.append(itemdictionary)
         # Only validate files signed with a certificate issued a correct CA
-        if not len(certdictionary) == 1:
-            if len(certdictionary) > 1:
+        if not len(InputCertMetaDataList) == 1:
+            if len(InputCertMetaDataList) > 1:
                 raise smimeX509ValidationError("To many keys in signature file.")
-            if len(certdictionary) == 0:
+            if len(InputCertMetaDataList) == 0:
                 raise smimeX509ValidationError("No keys found signature file.")
-
-        baseCert = certdictionary[0]
+        
+        if not self.TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList):
+            raise smimeX509ValidationError("Cert %s is expired")
+        
+        baseCert = InputCertMetaDataList[0]
         
         
         #TrustStore.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])

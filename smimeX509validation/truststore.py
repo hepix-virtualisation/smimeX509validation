@@ -449,7 +449,28 @@ class TrustStore(object):
         self.time = Time
         self.ca_name_spaces = CANamespaces()
     def update(self):
-        pass
+        directory = self.Metadata["dirCerts"]
+        for filename in os.listdir(directory):
+            fullpath = os.path.join(directory,filename)
+            if not os.path.isfile(fullpath):
+                continue
+            start,extention = os.path.splitext(filename)
+            if extention == u'.namespaces':
+                self.ca_name_spaces.load_ca_namespace(fullpath)
+            if extention == u'.signing_policy':
+                self.ca_name_spaces.load_ca_signing_policy(fullpath)
+        for filename in os.listdir(directory):
+            fullpath = os.path.join(directory,filename)
+            if not os.path.isfile(fullpath):
+                continue
+            start,extention = os.path.splitext(filename)
+            if extention in [u'.pem',u'.0']:
+                self.ca_name_spaces.load_ca_cert(fullpath)
+            if extention == u'.r0':
+                self.ca_name_spaces.load_ca_crl(fullpath)
+        
+        
+        
     def setMetadata(self, Metadata):
         self.Metadata = Metadata
     def load_ca_namespace(self,filepath):
@@ -486,3 +507,6 @@ class TrustStore(object):
         key = None
         return key
 
+    def CheckCirtificateRevocationList(self, InputCertMetaDataList):
+        #self.log.warn("sss")
+        return  self.ca_name_spaces.checkCrlHeirarchy(InputCertMetaDataList[0]['subject'],InputCertMetaDataList[0]['issuer'],InputCertMetaDataList[0]['serial_number'])
