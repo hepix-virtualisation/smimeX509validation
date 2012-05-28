@@ -80,6 +80,7 @@ class smimeX509validation(object):
         return self.Process(open(inputString).read())
 
     def Process(self,inputString):
+        self.verifyied = False
         buf = BIO.MemoryBuffer(inputString)
         sk = X509.X509_Stack()
         InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
@@ -148,12 +149,12 @@ class smimeX509validation(object):
         s.set_x509_store(TrustStoreM2CryptoX509_Store)
         try:
             v = s.verify(InputP7,InputDaraBufffer)
-	#when python 2.6 is the min version of supported
-	#change back to
-	#except SMIME.PKCS7_Error as e:
+	    #when python 2.6 is the min version of supported
+    	#change back to
+	    #except SMIME.PKCS7_Error as e:
         except SMIME.PKCS7_Error , e:
             raise smimeX509ValidationError(e)
-
+        self.verifyied = True
         output = {
             'SignerSubject' : signer_dn,
             'IssuerSubject' : issuer_dn,

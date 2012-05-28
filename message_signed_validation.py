@@ -25,8 +25,10 @@ def main():
             
             #print anchor.validate_file(item)
             smimeProcessor = smimeX509validation(anchor)
-            print smimeProcessor.ProcessFile(item)
-            #print smimeProcessor
+            smimeProcessor.ProcessFile(item)
+            print smimeProcessor.InputCertMetaDataList
+            print smimeProcessor.verifyied
+            print smimeProcessor.InputDaraStringIO.getvalue()
             
 
 if __name__ == "__main__":
