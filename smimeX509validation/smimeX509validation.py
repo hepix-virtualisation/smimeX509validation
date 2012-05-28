@@ -175,24 +175,11 @@ class smimeX509validation(object):
 
 def LoadDirChainOfTrust(dirPath):
     DirTrustStore = TrustStore()
-    for filename in os.listdir(dirPath):
-        fullpath = os.path.join(dirPath,filename)
-        if not os.path.isfile(fullpath):
-            continue
-        start,extention = os.path.splitext(filename)
-        if extention == u'.namespaces':
-            DirTrustStore.load_ca_namespace(fullpath)
-        if extention == u'.signing_policy':
-            DirTrustStore.load_ca_signing_policy(fullpath)
-    for filename in os.listdir(dirPath):
-        fullpath = os.path.join(dirPath,filename)
-        if not os.path.isfile(fullpath):
-            continue
-        start,extention = os.path.splitext(filename)
-        if extention in [u'.pem',u'.0']:
-            DirTrustStore.load_ca_cert(fullpath)
-        if extention == u'.r0':
-            DirTrustStore.load_ca_crl(fullpath)
+    DirTrustStore.setType("directoy")
+    
+    Metadata= {'dirCerts' : dirPath}
+    DirTrustStore.setMetadata(Metadata)
+    DirTrustStore.update()
     return DirTrustStore
 
 

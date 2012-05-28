@@ -6,8 +6,7 @@ import time
 import datetime
 import logging, logging.config
 
-
-
+import smimeX509validation 
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -16,12 +15,15 @@ class NullHandler(logging.Handler):
 h = NullHandler()
 logging.getLogger("SmimeX509Validation").addHandler(h)
 
+#print smimeX509validation.TrustStoreError("sdfdsF")
 
 
 
-
-
-
+class TrustStoreError(Exception):
+       def __init__(self, value):
+           self.parameter = value
+       def __str__(self):
+           return repr(self.parameter)
 
 
 
@@ -313,7 +315,7 @@ class CANamespaces:
     def checkCrlHeirarchy(self,subject,issuer,serialno):
         possibleIssuers = self.GetListCaWithSignerDn(subject)
         if not issuer in possibleIssuers:
-            raise SmimeX509ValidationError("Signers DN issued by unaproved CA.")
+            raise TrustStoreError("Signers DN issued by unaproved CA.")
         CaHeirarchList = self.GetCaHeirarchListWithCaDn(issuer)
         current_Sn = serialno
         for item in CaHeirarchList:
@@ -390,20 +392,20 @@ class TrustAnchor:
         # Only validate files signed with a certificate issued a correct CA
         if not len(certdictionary) == 1:
             if len(certdictionary) > 1:
-                raise SmimeX509ValidationError("To many keys in signature file.")
+                raise TrustStoreError("To many keys in signature file.")
             if len(certdictionary) == 0:
-                raise SmimeX509ValidationError("No keys found signature file.")
+                raise TrustStoreError("No keys found signature file.")
 
         baseCert = certdictionary[0]
         if not self.ca_name_spaces.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number']):
-            raise SmimeX509ValidationError("Cert %s is expired")
+            raise TrustStoreError("Cert %s is expired")
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(baseCert['issuer'])
         s = SMIME.SMIME()
         sk = X509.X509_Stack()
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
-                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+                raise TrustStoreError("No trusted Key for '%s'" % (item))
             sk.push(foundKey)
         s.set_x509_stack(sk)
         st = X509.X509_Store()
@@ -411,7 +413,7 @@ class TrustAnchor:
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
-                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+                raise TrustStoreError("No trusted Key for '%s'" % (item))
             st.add_cert(foundKey)
         s.set_x509_store(st)
         try:
@@ -420,7 +422,7 @@ class TrustAnchor:
 	#change back to
 	#except SMIME.PKCS7_Error as e:
         except SMIME.PKCS7_Error , e:
-            raise SmimeX509ValidationError(e)
+            raise TrustStoreError(e)
 
         output = {
             'signer_dn' : signer_dn,
@@ -489,7 +491,7 @@ class TrustStore(object):
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
                 self.log.info("No trusted Key for '%s'" % (item))
-                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+                raise TrustStoreError("No trusted Key for '%s'" % (item))
             sk.push(foundKey)
         return sk
     def GerM2CryptoX509_Store(self, subject, issuer, serial_number):
@@ -498,7 +500,7 @@ class TrustStore(object):
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
-                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+                raise TrustStoreError("No trusted Key for '%s'" % (item))
             st.add_cert(foundKey)
         return st
         
