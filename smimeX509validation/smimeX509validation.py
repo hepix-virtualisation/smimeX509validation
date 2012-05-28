@@ -13,6 +13,7 @@ class NullHandler(logging.Handler):
 h = NullHandler()
 logging.getLogger("SmimeX509Validation").addHandler(h)
 
+
 class smimeX509ValidationError(Exception):
        def __init__(self, value):
            self.parameter = value
@@ -24,7 +25,9 @@ class TrustStore(object):
         if Time == None:
             Time = datetime.datetime.now()
         self.time = Time
-         
+    def setType(self, Metadata,TrustStoreType = "directoy"):
+        pass
+            
     def load_ca_namespace(self):
         pass
     def load_ca_signing_policy(self):
@@ -34,13 +37,18 @@ class TrustStore(object):
     def load_ca_crl(self):
         pass
     def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
-        return False
+        return None
     def GetCertKeyBySubject(self, CertKeySubject):
         key = None
         return key
+
 class smimeX509validation(object):
 
-    def __init__(self,TrustStore,inputString):
+    def __init__(self,TrustStore):
+        self.TrustStore = TrustStore
+    
+    
+    def Process(inputString):
         buf = BIO.MemoryBuffer(inputString)
         sk = X509.X509_Stack()
         self.InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)

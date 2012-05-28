@@ -4,7 +4,7 @@ import sys
 from smimeX509validation import TrustAnchor
 import logging, logging.config
 import os.path
-from smimeX509validation import TrustStore, LoadDirChainOfTrust
+from smimeX509validation import TrustStore, LoadDirChainOfTrust,smimeX509validation
 
 def main():
     p = optparse.OptionParser()
@@ -22,8 +22,12 @@ def main():
         sys.exit(1)
     else:
         for item in options.message:
-            print anchor.validate_file(item)
-            smimeX509validation()
+            
+            #print anchor.validate_file(item)
+            smimeProcessor = smimeX509validation(anchor)
+            smimeProcessor.ReadFilePath(item)
+            print smimeProcessor
+            
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING)
