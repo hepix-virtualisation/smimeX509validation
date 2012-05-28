@@ -325,7 +325,15 @@ class CANamespaces:
             current_Sn = self.ca[issuer].serial
         return True
 
-
+    def checkChainOfTrust(self,trustList):
+        for item in trustList:
+            subject = item["subject"]
+            issuer = item["issuer"]
+            serialno =item["serial_number"]
+            Passed = self.checkCrlHeirarchy(subject,issuer,serialno)
+            if Passed == False:
+                return False
+        return True
 
 
 
@@ -338,6 +346,11 @@ class TrustStore(object):
             Time = datetime.datetime.now()
         self.time = Time
         self.ca_name_spaces = CANamespaces()
+        
+        
+    def setMetadata(self, Metadata):
+        self.Metadata = Metadata
+
     def update(self):
         directory = self.Metadata["dirCerts"]
         for filename in os.listdir(directory):
@@ -359,19 +372,8 @@ class TrustStore(object):
             if extention == u'.r0':
                 self.ca_name_spaces.load_ca_crl(fullpath)
         
-        
-        
-    def setMetadata(self, Metadata):
-        self.Metadata = Metadata
-    def load_ca_namespace(self,filepath):
-        return self.ca_name_spaces.load_ca_namespace(filepath)
-        pass
-    def load_ca_signing_policy(self,filepath):
-        return self.ca_name_spaces.load_ca_signing_policy(filepath)
-    def load_ca_cert(self,filepath):
-        return self.ca_name_spaces.load_ca_cert(filepath)
-    def load_ca_crl(self,filepath):
-        return self.ca_name_spaces.load_ca_crl(filepath)
+
+   
     def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
         sk = X509.X509_Stack()
@@ -382,6 +384,7 @@ class TrustStore(object):
                 raise TrustStoreError("No trusted Key for '%s'" % (item))
             sk.push(foundKey)
         return sk
+
     def GerM2CryptoX509_Store(self, subject, issuer, serial_number):
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
         st = X509.X509_Store()
@@ -398,5 +401,4 @@ class TrustStore(object):
         return key
 
     def CheckCirtificateRevocationList(self, InputCertMetaDataList):
-        #self.log.warn("sss")
-        return  self.ca_name_spaces.checkCrlHeirarchy(InputCertMetaDataList[0]['subject'],InputCertMetaDataList[0]['issuer'],InputCertMetaDataList[0]['serial_number'])
+        return  self.ca_name_spaces.checkChainOfTrust(InputCertMetaDataList)
