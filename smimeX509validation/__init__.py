@@ -1,1 +1,2 @@
-from loadcanamespace import TrustAnchor, CANamespacePermited, CANamespaces, SmimeX509ValidationError
+from loadcanamespace import TrustAnchor, CANamespacePermited, CANamespaces
+from smimeX509validation import TrustStore, smimeX509ValidationError, LoadDirChainOfTrust

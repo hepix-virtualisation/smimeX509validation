@@ -5,7 +5,7 @@ from M2Crypto import SMIME, X509, BIO
 import time
 import datetime
 import logging, logging.config
-
+import truststore
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
@@ -22,12 +22,9 @@ class smimeX509ValidationError(Exception):
 class TrustStore(object):
     def __init__(self, Time = None):
         if Time == None:
-            Time = datetime.now()
+            Time = datetime.datetime.now()
         self.time = Time
-        
-    def update(self):
-        pass
-    
+         
     def load_ca_namespace(self):
         pass
     def load_ca_signing_policy(self):
@@ -86,16 +83,43 @@ class smimeX509validation(object):
                 raise SmimeX509ValidationError("No keys found signature file.")
 
         baseCert = certdictionary[0]
-        GetCaHeirarchListWithCaDn(self, baseCert):
-        ca_name_spaces.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number']):
-        return output    
-    def ValidateCaHeirarchListWithCaDn(self, CaHeirarchList):
         
+        
+        
+        TrustStore.checkCrlHeirarchy(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
+       
+        
+        s = SMIME.SMIME()
+        sk = X509.X509_Stack()
+        TrustStoreM2CryptoX509_Stack = TrustStore.GerM2CryptoX509_Stack(self, baseCert)
+        s.set_x509_stack()
+        st = X509.X509_Store(TrustStoreM2CryptoX509_Stack)
+        #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
+        for item in CaHeirarchy:
+            foundKey = self.ca_name_spaces.GetKeyByDn(item)
+            if foundKey == None:
+                raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
+            st.add_cert(foundKey)
+        s.set_x509_store(st)
+        try:
+            v = s.verify(p7,data)
+	#when python 2.6 is the min version of supported
+	#change back to
+	#except SMIME.PKCS7_Error as e:
+        except SMIME.PKCS7_Error , e:
+            raise SmimeX509ValidationError(e)
+
+        output = {
+            'signer_dn' : signer_dn,
+            'issuer_dn' : issuer_dn,
+            'data' : data.read()
+        }
+        return output
 
 def LoadDirChainOfTrust(dirPath):
     DirTrustStore = TrustStore()
-    for filename in os.listdir(directory):
-        fullpath = os.path.join(directory,filename)
+    for filename in os.listdir(dirPath):
+        fullpath = os.path.join(dirPath,filename)
         if not os.path.isfile(fullpath):
             continue
         start,extention = os.path.splitext(filename)
