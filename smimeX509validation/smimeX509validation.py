@@ -55,13 +55,13 @@ class TrustStore(object):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList)
         return None
-    def GerM2CryptoX509_Stack(self, InputCertMetaDataList):
+    def GetM2CryptoX509_Stack(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
-            return self._TrustStore.GerM2CryptoX509_Stack(InputCertMetaDataList)
+            return self._TrustStore.GetM2CryptoX509_Stack(InputCertMetaDataList)
         return None
-    def GerM2CryptoX509_Store(self, InputCertMetaDataList):
+    def GetM2CryptoX509_Store(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
-            return self._TrustStore.GerM2CryptoX509_Store(InputCertMetaDataList)
+            return self._TrustStore.GetM2CryptoX509_Store(InputCertMetaDataList)
         return None
     def GetCertKeyBySubject(self, CertKeySubject):
        if hasattr(self, "_TrustStore"):
@@ -134,11 +134,11 @@ class smimeX509validation(object):
        
         
         s = SMIME.SMIME()
-        TrustStoreM2CryptoX509_Stack = self.TrustStore.GerM2CryptoX509_Stack(self.InputCertMetaDataList)
+        TrustStoreM2CryptoX509_Stack = self.TrustStore.GetM2CryptoX509_Stack(self.InputCertMetaDataList)
         if TrustStoreM2CryptoX509_Stack == None:
             raise smimeX509ValidationError("No Trusted Stack found.")
             
-        TrustStoreM2CryptoX509_Store = self.TrustStore.GerM2CryptoX509_Store(self.InputCertMetaDataList)
+        TrustStoreM2CryptoX509_Store = self.TrustStore.GetM2CryptoX509_Store(self.InputCertMetaDataList)
         if TrustStoreM2CryptoX509_Store == None:
             raise smimeX509ValidationError("No Trusted Store found.")
         #print TrustStoreM2CryptoX509_Store
