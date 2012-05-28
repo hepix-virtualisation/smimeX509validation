@@ -26,7 +26,7 @@ def main():
             #print anchor.validate_file(item)
             smimeProcessor = smimeX509validation(anchor)
             print smimeProcessor.ProcessFile(item)
-            print smimeProcessor
+            #print smimeProcessor
             
 
 if __name__ == "__main__":

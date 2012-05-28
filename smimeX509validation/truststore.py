@@ -462,14 +462,12 @@ class TrustStore(object):
     def load_ca_crl(self,filepath):
         return self.ca_name_spaces.load_ca_crl(filepath)
     def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
-        print 'dddd'
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
-        print 'asdasdasd'
         sk = X509.X509_Stack()
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
-            self.log.error("item=%s,foundKey=%s" % (item,foundKey))
             if foundKey == None:
+                self.log.info("No trusted Key for '%s'" % (item))
                 raise SmimeX509ValidationError("No trusted Key for '%s'" % (item))
             sk.push(foundKey)
         return sk

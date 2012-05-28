@@ -145,7 +145,7 @@ class smimeX509validation(object):
         TrustStoreM2CryptoX509_Store = self.TrustStore.GerM2CryptoX509_Store(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
         if TrustStoreM2CryptoX509_Store == None:
             raise smimeX509ValidationError("No Trusted Store found.")
-        print TrustStoreM2CryptoX509_Store
+        #print TrustStoreM2CryptoX509_Store
         s.set_x509_stack(TrustStoreM2CryptoX509_Stack)
         
         
