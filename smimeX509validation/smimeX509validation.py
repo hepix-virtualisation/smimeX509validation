@@ -22,27 +22,57 @@ class smimeX509ValidationError(Exception):
            return repr(self.parameter)
 
 class TrustStore(object):
-    def __init__(self, Time = None,TrustStoreType = "directoy",Metadata= {'directory' : '/etc/grid-security/certificates/'}):
+    """The Trust Store is a Class Hiding the details of trusting Certification Authorities.
+    It manages Certification Authoritie Namespaces, Certification Authorities, 
+    and Certificate Revocation Lists. Downloading Certificate Revocation Lists is left 
+    to fetch-crl or similar applications.
+    This is a facard class to avoid complicating the Library API
+    and because future implementations may be created"""
+    def __init__(self, Time = None,TrustStoreType = "directoy",Metadata= {'dirCerts' : '/etc/grid-security/certificates/'}):
         if Time == None:
             Time = datetime.datetime.now()
         self.time = Time
+        self.setMetadata  (Metadata)
+        self.setType()
+        
+        
     def setType(self, TrustStoreType = "directoy"):
-        pass
+        if TrustStoreType == "directoy":
+            self._TrustStore = truststore.TrustStore()
+            self.setMetadata(self.Metadata)
+        
     def setMetadata  (self, Metadata):
-        pass
-    def load_ca_namespace(self):
-        pass
-    def load_ca_signing_policy(self):
-        pass
-    def load_ca_cert(self):
-        pass
-    def load_ca_crl(self):
-        pass
+        self.Metadata = dict(Metadata)
+        if hasattr(self, "_TrustStore"):
+            self._TrustStore.setMetadata(Metadata)
+    def update(self,filepath):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.update()
+        return None
+    def load_ca_signing_policy(self,filepath):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.load_ca_signing_policy(filepath)
+        return None
+    def load_ca_cert(self,filepath):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.load_ca_cert(filepath)
+        return None
+    def load_ca_crl(self,filepath):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.load_ca_crl(filepath)
+        return None
+    def load_ca_namespace(self,filepath):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.load_ca_namespace(filepath)
+        return None
     def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
+        if hasattr(self, "_TrustStore"):
+            return self._TrustStore.GerM2CryptoX509_Stack(subject, issuer, serial_number)
         return None
     def GetCertKeyBySubject(self, CertKeySubject):
-        key = None
-        return key
+       if hasattr(self, "_TrustStore"):
+            return self._TrustStore.GetCertKeyBySubject(CertKeySubject)
+       return None
 
 class smimeX509validation(object):
 
@@ -108,17 +138,14 @@ class smimeX509validation(object):
         TrustStoreM2CryptoX509_Stack = self.TrustStore.GerM2CryptoX509_Stack(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
         if TrustStoreM2CryptoX509_Stack == None:
             raise smimeX509ValidationError("No Trusted Stack found.")
+        print TrustStoreM2CryptoX509_Stack
         s.set_x509_stack(TrustStoreM2CryptoX509_Stack)
         st = X509.X509_Store(TrustStoreM2CryptoX509_Stack)
         #print self.ca_name_spaces.ca[correct_issuer_dn].ca_filename
-        for item in CaHeirarchy:
-            foundKey = self.ca_name_spaces.GetKeyByDn(item)
-            if foundKey == None:
-                raise smimeX509ValidationError("No trusted Key for '%s'" % (item))
-            st.add_cert(foundKey)
+        
         s.set_x509_store(st)
         try:
-            v = s.verify(p7,data)
+            v = s.verify(InputP7,Inputdata)
 	#when python 2.6 is the min version of supported
 	#change back to
 	#except SMIME.PKCS7_Error as e:
