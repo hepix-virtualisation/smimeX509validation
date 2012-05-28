@@ -374,7 +374,8 @@ class TrustStore(object):
         
 
    
-    def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
+    def GerM2CryptoX509_Stack(self, InputCertMetaDataList):
+        issuer = InputCertMetaDataList[0]["issuer"]
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
         sk = X509.X509_Stack()
         for item in CaHeirarchy:
@@ -385,7 +386,8 @@ class TrustStore(object):
             sk.push(foundKey)
         return sk
 
-    def GerM2CryptoX509_Store(self, subject, issuer, serial_number):
+    def GerM2CryptoX509_Store(self, InputCertMetaDataList):
+        issuer = InputCertMetaDataList[0]["issuer"]
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
         st = X509.X509_Store()
         for item in CaHeirarchy:

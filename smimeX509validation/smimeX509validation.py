@@ -6,6 +6,7 @@ import time
 import datetime
 import logging, logging.config
 import truststore
+import StringIO
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -54,13 +55,13 @@ class TrustStore(object):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList)
         return None
-    def GerM2CryptoX509_Stack(self, subject, issuer, serial_number):
+    def GerM2CryptoX509_Stack(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
-            return self._TrustStore.GerM2CryptoX509_Stack(subject, issuer, serial_number)
+            return self._TrustStore.GerM2CryptoX509_Stack(InputCertMetaDataList)
         return None
-    def GerM2CryptoX509_Store(self, subject, issuer, serial_number):
+    def GerM2CryptoX509_Store(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
-            return self._TrustStore.GerM2CryptoX509_Store(subject, issuer, serial_number)
+            return self._TrustStore.GerM2CryptoX509_Store(InputCertMetaDataList)
         return None
     def GetCertKeyBySubject(self, CertKeySubject):
        if hasattr(self, "_TrustStore"):
@@ -82,6 +83,8 @@ class smimeX509validation(object):
         buf = BIO.MemoryBuffer(inputString)
         sk = X509.X509_Stack()
         InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
+        self.InputDaraStringIO = StringIO.StringIO()
+        self.InputDaraStringIO.write(Inputdata.read())
         try:
             M2CryptoX509Stack =  InputP7.get0_signers(sk)
         except AttributeError, e:
@@ -113,6 +116,7 @@ class smimeX509validation(object):
             itemdictionary['serial_number'] = cert_sn
 
             InputCertMetaDataList.append(itemdictionary)
+        self.InputCertMetaDataList = InputCertMetaDataList
         # Only validate files signed with a certificate issued a correct CA
         if not len(InputCertMetaDataList) == 1:
             if len(InputCertMetaDataList) > 1:
@@ -120,7 +124,7 @@ class smimeX509validation(object):
             if len(InputCertMetaDataList) == 0:
                 raise smimeX509ValidationError("No keys found signature file.")
         
-        if not self.TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList):
+        if not self.TrustStore.CheckCirtificateRevocationList(self.InputCertMetaDataList):
             raise smimeX509ValidationError("Cert %s is expired")
         
         baseCert = InputCertMetaDataList[0]
@@ -130,20 +134,20 @@ class smimeX509validation(object):
        
         
         s = SMIME.SMIME()
-        TrustStoreM2CryptoX509_Stack = self.TrustStore.GerM2CryptoX509_Stack(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
+        TrustStoreM2CryptoX509_Stack = self.TrustStore.GerM2CryptoX509_Stack(self.InputCertMetaDataList)
         if TrustStoreM2CryptoX509_Stack == None:
             raise smimeX509ValidationError("No Trusted Stack found.")
             
-        TrustStoreM2CryptoX509_Store = self.TrustStore.GerM2CryptoX509_Store(baseCert['subject'],baseCert['issuer'],baseCert['serial_number'])
+        TrustStoreM2CryptoX509_Store = self.TrustStore.GerM2CryptoX509_Store(self.InputCertMetaDataList)
         if TrustStoreM2CryptoX509_Store == None:
             raise smimeX509ValidationError("No Trusted Store found.")
         #print TrustStoreM2CryptoX509_Store
         s.set_x509_stack(TrustStoreM2CryptoX509_Stack)
         
-        
+        InputDaraBufffer = BIO.MemoryBuffer(self.InputDaraStringIO.getvalue())
         s.set_x509_store(TrustStoreM2CryptoX509_Store)
         try:
-            v = s.verify(InputP7,Inputdata)
+            v = s.verify(InputP7,InputDaraBufffer)
 	#when python 2.6 is the min version of supported
 	#change back to
 	#except SMIME.PKCS7_Error as e:
@@ -153,7 +157,7 @@ class smimeX509validation(object):
         output = {
             'SignerSubject' : signer_dn,
             'IssuerSubject' : issuer_dn,
-            'Data' : Inputdata.read()
+            'Data' : self.InputDaraStringIO.getvalue()
         }
         return output
 
