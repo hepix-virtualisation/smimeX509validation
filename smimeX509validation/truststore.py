@@ -75,22 +75,25 @@ class CANamespacePermited:
     def set_ca_x509(self,x509):
         self.x509 = x509
     def check_crl(self,serial_number):
+        if self.crl == None:
+            self.logger.error("CRL list unpassed for :%s" % self.issuer_dn)
+            return False
         now = datetime.datetime.now()
         if self.crl_expires == None:
             self.logger.error("Failed to parse CRL expiry date for issuer %s." % self.issuer_dn)
+            return False
         else:
             if now >= self.crl_expires:
                 self.logger.error("CRL has expired %s." % self.issuer_dn)
                 return False
         if self.crl_created == None:
             self.logger.error("Failed to parse CRL creation date for issuer %s." % self.issuer_dn)
+            return False
         else:
             if now <= self.crl_created:
                 self.logger.error("CRL is created in the future %s." % self.issuer_dn)
                 return False
-        if self.crl == None:
-            self.logger.error("CRL list unpassed %s." % self.issuer_dn)
-            return False
+        
         if int(serial_number) in self.crl:
             return False
         return True
@@ -402,5 +405,5 @@ class TrustStore(object):
         key = None
         return key
 
-    def CheckCirtificateRevocationList(self, InputCertMetaDataList):
+    def CheckCertificateRevocationList(self, InputCertMetaDataList):
         return  self.ca_name_spaces.checkChainOfTrust(InputCertMetaDataList)

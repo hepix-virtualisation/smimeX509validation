@@ -29,7 +29,7 @@ class TrustStore(object):
     to fetch-crl or similar applications.
     This is a facard class to avoid complicating the Library API
     and because future implementations may be created"""
-    def __init__(self, Time = None,TrustStoreType = "directoy",Metadata= {'dirCerts' : '/etc/grid-security/certificates/'}):
+    def __init__(self, Time = None,TrustStoreType = "directory",Metadata= {'dirCerts' : '/etc/grid-security/certificates/'}):
         if Time == None:
             Time = datetime.datetime.now()
         self.time = Time
@@ -38,8 +38,8 @@ class TrustStore(object):
         self.update()
         
         
-    def setType(self, TrustStoreType = "directoy"):
-        if TrustStoreType == "directoy":
+    def setType(self, TrustStoreType = "directory"):
+        if TrustStoreType == "directory":
             self._TrustStore = truststore.TrustStore()
             self.setMetadata(self.Metadata)
         
@@ -51,9 +51,9 @@ class TrustStore(object):
         if hasattr(self, "_TrustStore"):
             return self._TrustStore.update()
         return None
-    def CheckCirtificateRevocationList(self, InputCertMetaDataList):
+    def CheckCertificateRevocationList(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
-            return self._TrustStore.CheckCirtificateRevocationList(InputCertMetaDataList)
+            return self._TrustStore.CheckCertificateRevocationList(InputCertMetaDataList)
         return None
     def GetM2CryptoX509_Stack(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
@@ -80,7 +80,7 @@ class smimeX509validation(object):
         return self.Process(open(inputString).read())
 
     def Process(self,inputString):
-        self.verifyied = False
+        self.verified = False
         buf = BIO.MemoryBuffer(inputString)
         sk = X509.X509_Stack()
         InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
@@ -125,7 +125,7 @@ class smimeX509validation(object):
             if len(InputCertMetaDataList) == 0:
                 raise smimeX509ValidationError("No keys found signature file.")
         
-        if not self.TrustStore.CheckCirtificateRevocationList(self.InputCertMetaDataList):
+        if not self.TrustStore.CheckCertificateRevocationList(self.InputCertMetaDataList):
             raise smimeX509ValidationError("Cert %s is expired")
         
         baseCert = InputCertMetaDataList[0]
@@ -154,7 +154,7 @@ class smimeX509validation(object):
 	    #except SMIME.PKCS7_Error as e:
         except SMIME.PKCS7_Error , e:
             raise smimeX509ValidationError(e)
-        self.verifyied = True
+        self.verified = True
         output = {
             'SignerSubject' : signer_dn,
             'IssuerSubject' : issuer_dn,
@@ -164,7 +164,7 @@ class smimeX509validation(object):
 
 def LoadDirChainOfTrust(dirPath):
     DirTrustStore = TrustStore()
-    DirTrustStore.setType("directoy")
+    DirTrustStore.setType("directory")
     
     Metadata= {'dirCerts' : dirPath}
     DirTrustStore.setMetadata(Metadata)
