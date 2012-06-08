@@ -27,7 +27,7 @@ def main():
             smimeProcessor = smimeX509validation(anchor)
             smimeProcessor.ProcessFile(item)
             print smimeProcessor.InputCertMetaDataList
-            print smimeProcessor.verifyied
+            print smimeProcessor.verified
             print smimeProcessor.InputDaraStringIO.getvalue()
             
 
