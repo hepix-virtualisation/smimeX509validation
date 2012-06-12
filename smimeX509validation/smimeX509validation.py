@@ -1,7 +1,7 @@
 import os.path
 import shlex
 import re
-from M2Crypto import SMIME, X509, BIO
+from M2Crypto import SMIME,  X509, BIO
 import time
 import datetime
 import logging, logging.config
@@ -83,7 +83,10 @@ class smimeX509validation(object):
         self.verified = False
         buf = BIO.MemoryBuffer(inputString)
         sk = X509.X509_Stack()
-        InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
+        try:
+            InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
+        except SMIME.SMIME_Error , e:
+            raise smimeX509ValidationError(e)
         self.InputDaraStringIO = StringIO.StringIO()
         self.InputDaraStringIO.write(Inputdata.read())
         try:
