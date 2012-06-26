@@ -72,7 +72,7 @@ class CANamespacePermited:
             self.logger.error("Failed to parse CRL expiry date for issuer %s." % self.issuer_dn)
         else:
             if now >= self.crl_expires:
-                self.logger.error("CRL has expired %s." % self.issuer_dn)
+                self.logger.error("'%s' CRL has expired on '%s'." % (self.issuer_dn,self.crl_expires))
                 return False
         if self.crl_created == None:
             self.logger.error("Failed to parse CRL creation date for issuer %s." % self.issuer_dn)
@@ -84,6 +84,7 @@ class CANamespacePermited:
             self.logger.error("CRL list unpassed %s." % self.issuer_dn)
             return False
         if int(serial_number) in self.crl:
+            self.logger.error("CRL revokes %s." % serial_number)
             return False
         return True
 
@@ -312,7 +313,7 @@ class CANamespaces:
         current_Sn = serialno
         for item in CaHeirarchList:
             if not self.ca[issuer].check_crl(current_Sn):
-                self.logger.info("Cert '%s' with serial number '%s' is revoked by '%s'" % (subject,serialno,issuer))
+                self.logger.info("'%s' CRL check with serial number '%s' failed shows '%s' is revoked." % (issuer,serialno,subject))
                 return False
             current_Sn = self.ca[issuer].serial
         return True
