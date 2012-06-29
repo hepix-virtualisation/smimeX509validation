@@ -1,3 +1,12 @@
+
+smimeX509validation-0.0.10
+
+* Improved error logging on CRL errors.
+
+smimeX509validation-0.0.9
+
+* Restructured the code to make it easier to reuse.
+
 smimeX509validation-0.0.8
 
 * Added and Apache License, Version 2.0
