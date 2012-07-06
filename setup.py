@@ -37,6 +37,6 @@ CRL's it is recomended that other tools such as fetch-crl to update your CRL's."
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
-    data_files=[('/usr/share/doc/smimeX509validation-%s' % (version),['README','ChangeLog','TODO','LICENSE']),
+    data_files=[('/usr/share/doc/smimeX509validation-%s' % (version),['README.md','ChangeLog','TODO','LICENSE']),
         ('/usr/share/doc/smimeX509validation-%s/examples' % (version),['outline_code.py','message_signed_validation.py'])]
     )

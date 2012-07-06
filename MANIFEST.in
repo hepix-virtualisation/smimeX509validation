@@ -1,4 +1,4 @@
-include README
+include README.md
 include TODO
 include ChangeLog
 include outline_code.py
