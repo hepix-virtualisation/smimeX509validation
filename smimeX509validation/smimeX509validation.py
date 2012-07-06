@@ -81,7 +81,7 @@ class smimeX509validation(object):
 
     def Process(self,inputString):
         self.verified = False
-        buf = BIO.MemoryBuffer(inputString)
+        buf = BIO.MemoryBuffer(str(inputString))
         sk = X509.X509_Stack()
         try:
             InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
