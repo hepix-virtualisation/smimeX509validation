@@ -1,3 +1,7 @@
+* Changed README to README.md
+* Improved Documentation
+* Due to bug found in client passing unicode when m2crypto expects a "str" type, all input strings are cast 
+  to str.
 
 smimeX509validation-0.0.10
 

@@ -81,6 +81,7 @@ class smimeX509validation(object):
 
     def Process(self,inputString):
         self.verified = False
+        # Note we cast to a String type as unicode will not verify
         buf = BIO.MemoryBuffer(str(inputString))
         sk = X509.X509_Stack()
         try:
