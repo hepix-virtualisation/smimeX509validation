@@ -252,7 +252,7 @@ class CANamespaces:
             self.logger.warning("CRL Issuer not found:%s" % (filename))
             return False
         if not Issuer in self.ca.keys():
-            self.logger.warning("Namespace for Issuer '%s' does not exist:%s" % (Issuer,filename))
+            self.logger.debug("Namespace for Issuer '%s' does not exist:%s" % (Issuer,filename))
             return False
         self.ca[Issuer].crl = revokationlist
         self.ca[Issuer].crl_created = crl_update_created
@@ -265,7 +265,7 @@ class CANamespaces:
             return False
         now = datetime.datetime.now()
         if now <= crl_update_created:
-            self.logger.info("CRL created in the future :%s:%s" % (filename,Issuer))
+            self.logger.debug("CRL created in the future :%s:%s" % (filename,Issuer))
             return False
         if now >= crl_update_expires:
             self.logger.info("at %s the CRL expired:%s:%s" % (crl_update_expires,filename,Issuer))
