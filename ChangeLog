@@ -1,3 +1,7 @@
+smimeX509validation-0.0.12
+
+* changed some of the logging levels from warning to debug.
+
 smimeX509validation-0.0.11
 
 * Changed README to README.md
