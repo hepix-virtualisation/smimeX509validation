@@ -21,15 +21,7 @@ fetch-crl gnereates *.r0 files, these are the crl for each certificate Authority
 
 smimeX509validation parses these *.r0 certficate revocation lists for expired certificates.
 
-## Generating trustsrore r0 certificate revolation files.
-
-Example use of the fetch-crl command
-
-/usr/sbin/fetch-crl --infodir doc/examples/truststore/
-
-For fetch-crl to work a name matchign file must exist with the crl's latest version url as the only content.
-
-## Trust store "signing_policy" files 
+### Trust store "signing_policy" files 
 
 Trust store "signing_policy" files should oook like this:
 
@@ -41,6 +33,23 @@ Where "cond_subjects" strign value represents a filter of Subjects that are alow
 
 The aim of this code is to authenticate SMIME signed messages, loading CRL's and CA details
 following the Trust Anchor Distribution trust anchor system.
+
+
+### Trust store "crl_url" files.
+
+Trust store "crl_url" files  should oook like this:
+
+    http://crl.tcs.terena.org/TERENASSLCA.crl
+
+pointing to crl update uri corresponding to the pem file share much of thier name 
+
+### Generating trustsrore r0 certificate revolation files.
+
+Example use of the fetch-crl command
+
+    /usr/sbin/fetch-crl --infodir doc/examples/truststore/
+
+For fetch-crl to work a name matchign file must exist with the crl's latest version url as the only content.
 
 #Contributors.
 
