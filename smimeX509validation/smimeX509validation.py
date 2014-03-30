@@ -57,7 +57,10 @@ class TrustStore(object):
         return None
     def GetM2CryptoX509_Stack(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
-            return self._TrustStore.GetM2CryptoX509_Stack(InputCertMetaDataList)
+            try:
+                return self._TrustStore.GetM2CryptoX509_Stack(InputCertMetaDataList)
+            except truststore.TrustStoreError, E:
+                raise smimeX509ValidationError(E.parameter)
         return None
     def GetM2CryptoX509_Store(self, InputCertMetaDataList):
         if hasattr(self, "_TrustStore"):
