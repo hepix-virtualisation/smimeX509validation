@@ -109,13 +109,20 @@ class smimeX509validation(object):
                 break
             else:
                 supplied_list.append(one)
-
+        now = datetime.datetime.now()
+        
         InputCertMetaDataList  = []
         for item in supplied_list:
             itemdictionary = {}
             issuer_dn = str(item.get_issuer())
             signer_dn = str(item.get_subject())
             cert_sn = str(item.get_serial_number())
+            not_before = truststore.parse_crl_date(str(item.get_not_before()))
+            not_after = truststore.parse_crl_date(str(item.get_not_after()))
+            if now < not_before:
+                raise smimeX509ValidationError("Certificate not yet valid for '%s' issued by '%s'." % (issuer_dn,signer_dn))
+            if now > not_after:
+                raise smimeX509ValidationError("Certificate expired '%s' issued by '%s'." % (issuer_dn,signer_dn))
             itemdictionary['subject'] = signer_dn
             itemdictionary['issuer'] = issuer_dn
             itemdictionary['serial_number'] = cert_sn
