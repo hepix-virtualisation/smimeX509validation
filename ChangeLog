@@ -1,3 +1,8 @@
+smimeX509validation-0.0.13
+
+* Updated README
+* check the not_before and not_after atrtributes of the ceritificate
+
 smimeX509validation-0.0.12
 
 * changed some of the logging levels from warning to debug.
