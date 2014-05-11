@@ -82,6 +82,13 @@ To Verify the message against the CA certificate.
 openssl smime -in your_signed.msg \
  -CAfile /etc/grid-security/certificates/dd4b34ea.0 \
  -verify 1> /dev/null
+ 
+or alternatively:
+
+    openssl smime -in  EGI.list \
+        -CApath /etc/grid-security/certificates/ \
+        -verify 1 > /dev/null
+
 
 
 Whats developed.
