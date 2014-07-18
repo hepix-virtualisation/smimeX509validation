@@ -1,3 +1,8 @@
+smimeX509validation-0.0.15
+
+* Support installing into a python virtualenv
+* Added some documentation on how to use openssl commandline.
+
 smimeX509validation-0.0.14
 
 * Fixed exception when TrustStore does not include issuers public key.
