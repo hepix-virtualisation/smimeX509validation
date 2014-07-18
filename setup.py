@@ -2,15 +2,22 @@
 
 from smimeX509validation.__version__ import version
 from sys import version_info
+import os
 if version_info < (2, 6):
-	from distutils.core import setup
+    from setuptools import setup, find_packages
 else:
     try:
         from setuptools import setup, find_packages
+        from distutils.core import setup
     except ImportError:
         from ez_setup import use_setuptools
         use_setuptools()
         from setuptools import setup, find_packages
+
+
+data_files_installdir = "/usr/share/doc/smimeX509validation-%s" % (version)
+if "VIRTUAL_ENV" in  os.environ:
+    data_files_installdir = 'doc'
 
 setup(name='smimeX509validation',
     version = version,
@@ -37,6 +44,6 @@ CRL's it is recomended that other tools such as fetch-crl to update your CRL's."
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
-    data_files=[('/usr/share/doc/smimeX509validation-%s' % (version),['README.md','ChangeLog','TODO','LICENSE']),
-        ('/usr/share/doc/smimeX509validation-%s/examples' % (version),['outline_code.py','message_signed_validation.py'])]
+    data_files=[(data_files_installdir,['README.md','ChangeLog','TODO','LICENSE']),
+        ('%s/examples' % (data_files_installdir),['outline_code.py','message_signed_validation.py'])]
     )
