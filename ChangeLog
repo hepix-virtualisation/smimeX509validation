@@ -1,3 +1,12 @@
+smimeX509validation-0.0.14
+
+* Fixed exception when TrustStore does not include issuers public key.
+
+smimeX509validation-0.0.13
+
+* Updated README
+* check the not_before and not_after attributes of the certificate.
+
 smimeX509validation-0.0.12
 
 * changed some of the logging levels from warning to debug.

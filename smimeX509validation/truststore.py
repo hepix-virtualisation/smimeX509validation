@@ -293,6 +293,8 @@ class CANamespaces:
         while len(inputlist) > 0:
             item = inputlist.pop()
             outputlist.append(item)
+            if not item in self.ca.keys():
+                raise TrustStoreError("Issuer not in trust store '%s'" % item)
             issuer = self.ca[item].issuer
             if issuer == item:
                 break
