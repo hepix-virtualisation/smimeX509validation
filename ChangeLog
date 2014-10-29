@@ -1,3 +1,8 @@
+smimeX509validation-0.0.16
+
+* Added first test into test suite
+* more all times to utc
+
 smimeX509validation-0.0.15
 
 * Support installing into a python virtualenv
