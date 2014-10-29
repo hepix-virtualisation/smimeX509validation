@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 def parse_crl_date(date_string):
     log = logging.getLogger("SmimeX509Validation.parse_crl_date")

@@ -31,7 +31,7 @@ class TrustStore(object):
     and because future implementations may be created"""
     def __init__(self, Time = None,TrustStoreType = "directory",Metadata= {'dirCerts' : '/etc/grid-security/certificates/'}):
         if Time == None:
-            Time = datetime.datetime.now()
+            Time = datetime.datetime.utcnow()
         self.time = Time
         self.setMetadata  (Metadata)
         self.setType()
@@ -112,7 +112,7 @@ class smimeX509validation(object):
                 break
             else:
                 supplied_list.append(one)
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         
         InputCertMetaDataList  = []
         for item in supplied_list:

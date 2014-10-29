@@ -54,7 +54,7 @@ class CANamespacePermited:
     def set_ca_x509(self,x509):
         self.x509 = x509
     def check_crl(self,serial_number):
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         if self.crl_expires == None:
             self.logger.error("Failed to parse CRL expiry date for issuer %s." % self.issuer_dn)
         else:
@@ -240,7 +240,7 @@ class CANamespaces:
         if None == crl_update_expires:
             self.logger.warning("CRL expiry date not found:%s:%s" % (filename,Issuer))
             return False
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         if now <= crl_update_created:
             self.logger.debug("CRL created in the future :%s:%s" % (filename,Issuer))
             return False
