@@ -58,7 +58,7 @@ def parse_ca_signing_policy_namespaces(namespaces):
 
 class CANamespacePermited:
     def __init__(self,issuer_dn):
-        self.logger = logging.getLogger("SmimeX509Validation.CANamespacePermited")
+        self.logger = logging.getLogger("SmimeX509Validation.truststore.CANamespacePermited")
         self.issuer_dn = issuer_dn
         self.namespaces = []
         self.namespaces_compiled = []
@@ -103,7 +103,7 @@ class CANamespacePermited:
 class CANamespaces:
     def __init__(self):
         self.ca = {}
-        self.logger = logging.getLogger("SmimeX509Validation.CANamespaces")
+        self.logger = logging.getLogger("SmimeX509Validation.truststore.CANamespaces")
     def add_issuer_regex(self,issuer,regex):
         if issuer in self.ca.keys():
             self.ca[issuer].add_issue_regex(regex)
