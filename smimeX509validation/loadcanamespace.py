@@ -5,6 +5,7 @@ from M2Crypto import SMIME, X509, BIO
 import time
 import datetime
 import logging, logging.config
+from crl_utils import parse_crl_date
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -18,20 +19,6 @@ class SmimeX509ValidationError(Exception):
            self.parameter = value
        def __str__(self):
            return repr(self.parameter)
-
-def parse_crl_date(date_string):
-    #
-    splitdata = date_string.split(' ')
-    date_list = []
-    for item in splitdata:
-        stripeditem = item.strip()
-        if len(stripeditem) > 0:
-            date_list.append(stripeditem)
-    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-    month_no = months.index(str(date_list[0])) +1
-    timelist = date_list[2].split(':')
-    return datetime.datetime(int(date_list[3]),month_no,int(date_list[1]),
-        int(timelist[0]),int(timelist[1]),int(timelist[2]))
 
 def parse_ca_signing_policy_namespaces(namespaces):
     if len(namespaces) < 2:
