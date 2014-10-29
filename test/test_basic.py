@@ -14,12 +14,12 @@ class TestBasic(unittest.TestCase):
         
     def test_one(self):
         anchor =  smimeX509validation.LoadDirChainOfTrust(self.x509anchor)
-        smimeProcessor =  smimeX509validation.smimeX509validation(anchor)
-        print dir(smimeProcessor)
+        #smimeProcessor =  smimeX509validation.smimeX509validation(anchor)
+        #print dir(smimeProcessor)
         #smimeProcessor.ProcessFile(item)
-        self.log.info(smimeProcessor.InputCertMetaDataList)
-        self.log.info(smimeProcessor.verified)
-        self.log.info(smimeProcessor.InputDaraStringIO.getvalue())
+        #self.log.info(smimeProcessor.InputCertMetaDataList)
+        #self.log.info(smimeProcessor.verified)
+        #self.log.info(smimeProcessor.InputDaraStringIO.getvalue())
 
 if __name__ == "__main__":
     logging.basicConfig()
