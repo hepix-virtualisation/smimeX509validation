@@ -45,5 +45,15 @@ CRL's it is recomended that other tools such as fetch-crl to update your CRL's."
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
     data_files=[(data_files_installdir,['README.md','ChangeLog','TODO','LICENSE']),
-        ('%s/examples' % (data_files_installdir),['outline_code.py','message_signed_validation.py'])]
+        ('%s/examples' % (data_files_installdir),['outline_code.py','message_signed_validation.py'])
+        ],
+    tests_require=[
+        'coverage >= 3.0',
+        'nose >= 1.1.0',
+        'mock',
+    ],
+    setup_requires=[
+        'nose',
+    ],
+    test_suite = 'nose.collector',
     )
