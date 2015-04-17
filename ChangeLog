@@ -1,3 +1,7 @@
+smimeX509validation-0.0.17
+
+* Added an example dummy nose test.
+
 smimeX509validation-0.0.16
 
 * Added first test into test suite
