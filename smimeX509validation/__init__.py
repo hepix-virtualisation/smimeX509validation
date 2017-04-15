@@ -17,7 +17,8 @@ def replace_dist(requirement):
             # and the associated pkg_resources.working_set.entries
             return pkg_resources.require(requirement)
 
-replace_dist("nose >= 1.1.0")
+if sys.version_info < (2, 6):
+    replace_dist("nose >= 1.1.0")
 
 
 
