@@ -1,3 +1,8 @@
+smimeX509validation-0.0.18
+
+* Only use replace_dist on python 2.6
+* Add M2Crypto dependacies
+
 smimeX509validation-0.0.17
 
 * Added an example dummy nose test.
