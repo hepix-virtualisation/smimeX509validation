@@ -19,6 +19,8 @@ data_files_installdir = "/usr/share/doc/smimeX509validation-%s" % (version)
 if "VIRTUAL_ENV" in  os.environ:
     data_files_installdir = 'doc'
 
+
+
 setup(name='smimeX509validation',
     version = version,
     description = 'Utility for Verifying smime Message Signatures',
@@ -48,12 +50,12 @@ CRL's it is recomended that other tools such as fetch-crl to update your CRL's."
         ('%s/examples' % (data_files_installdir),['outline_code.py','message_signed_validation.py'])
         ],
     tests_require=[
-        'coverage >= 3.0',
-        'nose >= 1.1.0',
-        'mock',
+        'nose',
+        'M2Crypto>=0.16',
     ],
     setup_requires=[
         'nose',
+        'M2Crypto>=0.16',
     ],
     test_suite = 'nose.collector',
     )
