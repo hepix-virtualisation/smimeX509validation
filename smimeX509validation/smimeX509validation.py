@@ -1,12 +1,21 @@
 import os.path
 import shlex
+import six
 import re
-from M2Crypto import SMIME,  X509, BIO
+
+if six.PY2:
+    from M2Crypto import SMIME,  X509, BIO
+    import StringIO
+else:
+    import ssl as SSL
+    from ssl import SSLError
+    from io import StringIO
+
+
 import time
 import datetime
 import logging, logging.config
 import truststore
-import StringIO
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -59,7 +68,7 @@ class TrustStore(object):
         if hasattr(self, "_TrustStore"):
             try:
                 return self._TrustStore.GetM2CryptoX509_Stack(InputCertMetaDataList)
-            except truststore.TrustStoreError, E:
+            except truststore.TrustStoreError as E:
                 raise smimeX509ValidationError(E.parameter)
         return None
     def GetM2CryptoX509_Store(self, InputCertMetaDataList):
@@ -89,13 +98,13 @@ class smimeX509validation(object):
         sk = X509.X509_Stack()
         try:
             InputP7, Inputdata = SMIME.smime_load_pkcs7_bio(buf)
-        except SMIME.SMIME_Error , e:
+        except SMIME.SMIME_Error as e:
             raise smimeX509ValidationError(e)
         self.InputDaraStringIO = StringIO.StringIO()
         self.InputDaraStringIO.write(Inputdata.read())
         try:
             M2CryptoX509Stack =  InputP7.get0_signers(sk)
-        except AttributeError, e:
+        except AttributeError as e:
             if str(e) == "PKCS7 instance has no attribute 'get0_signers'":
                 self.logger.error('m2crypto version 0.18 is the minimum supported, please upgrade.')
             raise e
@@ -166,7 +175,7 @@ class smimeX509validation(object):
 	    #when python 2.6 is the min version of supported
     	#change back to
 	    #except SMIME.PKCS7_Error as e:
-        except SMIME.PKCS7_Error , e:
+        except SMIME.PKCS7_Error as e:
             raise smimeX509ValidationError(e)
         self.verified = True
         output = {
