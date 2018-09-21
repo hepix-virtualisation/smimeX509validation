@@ -1,14 +1,12 @@
+from __future__ import absolute_import
 import os.path
 import shlex
 import re
-from M2Crypto import SMIME, X509, BIO
-import time
 import datetime
-import logging, logging.config
-
-import smimeX509validation 
-
+import logging
+import logging.config
 from crl_utils import parse_crl_date
+
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -159,7 +157,7 @@ class CANamespaces:
     def load_ca_cert(self,filename):
         try:
             x509c = X509.load_cert(filename)
-        except X509.X509Error, (instance):
+        except X509.X509Error as instance:
             self.logger.error("Failed to load CA cert '%s'" % (filename))
             return
 
