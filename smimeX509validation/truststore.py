@@ -2,10 +2,20 @@ from __future__ import absolute_import
 import os.path
 import shlex
 import re
+import six
+if six.PY2:
+    from M2Crypto import X509
+    from crl_utils import parse_crl_date
+else:
+    from OpenSSL.crypto import X509
+
+
+
+import time
 import datetime
 import logging
 import logging.config
-from crl_utils import parse_crl_date
+
 
 
 class NullHandler(logging.Handler):
@@ -24,6 +34,25 @@ class TrustStoreError(Exception):
            self.parameter = value
        def __str__(self):
            return repr(self.parameter)
+
+
+
+
+def gen_X509_load_cert(filepath):
+    if six.PY2:
+        return X509.load_cert(filename)
+    raise TrustStoreError("Not implemented:gen_X509_load_cert")
+
+def gen_X509_Stack():
+    if six.PY2:
+        return X509.X509_Stack()
+    raise TrustStoreError("Not implemented:gen_X509_Stack")
+
+def gen_X509_Store():
+    if six.PY2:
+        return X509.X509_Store()
+    raise TrustStoreError("Not implemented:gen_X509_Stack")
+
 
 
 
@@ -156,7 +185,7 @@ class CANamespaces:
 
     def load_ca_cert(self,filename):
         try:
-            x509c = X509.load_cert(filename)
+            x509c = gen_X509_load_cert(filename)
         except X509.X509Error as instance:
             self.logger.error("Failed to load CA cert '%s'" % (filename))
             return
@@ -368,7 +397,7 @@ class TrustStore(object):
     def GetM2CryptoX509_Stack(self, InputCertMetaDataList):
         issuer = InputCertMetaDataList[0]["issuer"]
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
-        sk = X509.X509_Stack()
+        sk = gen_X509_Stack()
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
@@ -380,7 +409,7 @@ class TrustStore(object):
     def GetM2CryptoX509_Store(self, InputCertMetaDataList):
         issuer = InputCertMetaDataList[0]["issuer"]
         CaHeirarchy = self.ca_name_spaces.GetCaHeirarchListWithCaDn(issuer)
-        st = X509.X509_Store()
+        st = gen_X509_Store()
         for item in CaHeirarchy:
             foundKey = self.ca_name_spaces.GetKeyByDn(item)
             if foundKey == None:
