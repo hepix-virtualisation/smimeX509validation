@@ -5,7 +5,7 @@ import re
 import six
 if six.PY2:
     from M2Crypto import X509
-    from crl_utils import parse_crl_date
+    from .crl_utils import parse_crl_date
 else:
     from OpenSSL.crypto import X509
 
