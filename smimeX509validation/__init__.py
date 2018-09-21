@@ -1,4 +1,4 @@
-
+from __future__ import absolute_import
 import pkg_resources
 import sys
 # If there is a conflicting non egg module,
@@ -22,5 +22,5 @@ if sys.version_info < (2, 6):
 
 
 
-from loadcanamespace import TrustAnchor, CANamespacePermited, CANamespaces
+from .loadcanamespace import TrustAnchor, CANamespacePermited, CANamespaces
 from smimeX509validation import TrustStore, smimeX509ValidationError, LoadDirChainOfTrust,smimeX509validation
