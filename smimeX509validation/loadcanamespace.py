@@ -148,7 +148,7 @@ class CANamespaces:
     def load_ca_cert(self,filename):
         try:
             x509c = X509.load_cert(filename)
-        except X509.X509Error, (instance):
+        except X509.X509Error as instance:
             self.logger.error("Failed to load CA cert '%s'" % (filename))
             return
 
@@ -340,7 +340,7 @@ class TrustAnchor:
         p7, data = SMIME.smime_load_pkcs7_bio(buf)
         try:
             supplied_stack =  p7.get0_signers(sk)
-        except AttributeError, e:
+        except AttributeError as e:
             if str(e) == "PKCS7 instance has no attribute 'get0_signers'":
                 self.logger.error('m2crypto version 0.18 is the minimum supported, please upgrade.')
             raise e
@@ -401,7 +401,7 @@ class TrustAnchor:
 	#when python 2.6 is the min version of supported
 	#change back to
 	#except SMIME.PKCS7_Error as e:
-        except SMIME.PKCS7_Error , e:
+        except SMIME.PKCS7_Error as e:
             raise SmimeX509ValidationError(e)
 
         output = {
