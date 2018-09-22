@@ -40,7 +40,7 @@ class TrustStoreError(Exception):
 
 def gen_X509_load_cert(filepath):
     if six.PY2:
-        return X509.load_cert(filename)
+        return X509.load_cert(filepath)
     raise TrustStoreError("Not implemented:gen_X509_load_cert")
 
 def gen_X509_Stack():
